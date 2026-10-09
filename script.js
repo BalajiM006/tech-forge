@@ -83,16 +83,12 @@
         const accounts = getAccounts();
 
         if (name === 'signup') {
-          const email = String(data.get('email')).trim().toLowerCase();
           if (password !== data.get('confirmPassword')) throw new Error('The passwords do not match.');
           if (accounts.some((account) => account.username.toLowerCase() === username.toLowerCase())) {
             throw new Error('That username is already registered.');
           }
-          if (accounts.some((account) => account.email.toLowerCase() === email)) {
-            throw new Error('An account with that email already exists.');
-          }
           const salt = makeSalt();
-          accounts.push({ username, email, salt, passwordHash: await hashPassword(password, salt) });
+          accounts.push({ username, salt, passwordHash: await hashPassword(password, salt) });
           localStorage.setItem(AUTH_KEY, JSON.stringify(accounts));
           showAuthView('signin');
           document.querySelector('#signinUsername').value = username;
@@ -116,9 +112,6 @@
   document.addEventListener('click', (event) => {
     const viewButton = event.target.closest('[data-auth-view]');
     if (viewButton) showAuthView(viewButton.dataset.authView);
-    if (event.target.closest('[data-auth-placeholder="forgot"]')) {
-      showAuthMessage('Password recovery is not available in this demo.');
-    }
   });
 
   document.querySelector('#signoutButton').addEventListener('click', () => {
