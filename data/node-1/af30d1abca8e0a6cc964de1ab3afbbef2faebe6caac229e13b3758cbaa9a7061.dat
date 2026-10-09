@@ -1,5 +1,0 @@
-cluster:
-  replication_factor: 3
-  scrubber_interval_sec: 2
-  safe_write: true
-  zone_aware: true
