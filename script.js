@@ -102,9 +102,8 @@
         }
 
         if (name === 'forgot') {
-          const email = String(data.get('email')).trim().toLowerCase();
-          const account = accounts.find((entry) => entry.username.toLowerCase() === username.toLowerCase() && entry.email.toLowerCase() === email);
-          if (!account) throw new Error('The username and email do not match an account.');
+          const account = accounts.find((entry) => entry.username.toLowerCase() === username.toLowerCase());
+          if (!account) throw new Error('No account was found with that username.');
           if (password !== data.get('confirmPassword')) throw new Error('The passwords do not match.');
           account.salt = makeSalt();
           account.passwordHash = await hashPassword(password, account.salt);

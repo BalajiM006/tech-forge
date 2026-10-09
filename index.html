@@ -62,11 +62,9 @@
 
       <form class="auth-form" id="forgotForm" hidden>
         <h1>Reset your password</h1>
-        <p class="auth-copy">Verify your username and email, then choose a new password.</p>
+        <p class="auth-copy">Enter your username and choose a new password.</p>
         <label for="resetUsername">Username</label>
         <input id="resetUsername" name="username" autocomplete="username" required />
-        <label for="resetEmail">Email address</label>
-        <input id="resetEmail" name="email" type="email" autocomplete="email" required />
         <label for="resetPassword">New password</label>
         <input id="resetPassword" name="password" type="password" autocomplete="new-password" minlength="8" required />
         <label for="resetConfirm">Confirm new password</label>
@@ -75,7 +73,7 @@
         <p class="auth-switch"><button class="text-button" type="button" data-auth-view="signin">Back to sign in</button></p>
       </form>
       <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
-      <p class="auth-note">Demo access is stored in this browser only. Do not use a real or reused password.</p>
+      <p class="auth-note">Demo access is stored in this browser only. Password recovery uses your username only. Do not use a real or reused password.</p>
     </div>
   </main>
 
