@@ -36,35 +36,6 @@
 
   <div class="wrap page">
 
-    <!-- Cluster -->
-    <section class="cluster" aria-labelledby="clusterTitle">
-      <div class="section-head">
-        <div>
-          <h2 id="clusterTitle">Storage nodes</h2>
-          <p class="hint">Every square is one replica of one file. Each file is kept on 3 nodes, spread across zones.</p>
-        </div>
-        <div class="controls">
-          <label class="switch"><input type="checkbox" id="tAuto" checked /><span class="track"></span>Auto-repair</label>
-          <label class="switch"><input type="checkbox" id="tChaos" /><span class="track"></span>Chaos mode</label>
-          <button class="btn" data-act="corrupt">Corrupt a replica</button>
-          <button class="btn" data-act="failnode">Fail a node</button>
-          <button class="btn primary" data-act="repair">Run repair now</button>
-        </div>
-      </div>
-
-      <div class="nodes" id="nodes"></div>
-
-      <ul class="legend" aria-label="Replica colours">
-        <li><i class="cell healthy"></i>Healthy</li>
-        <li><i class="cell repairing"></i>Syncing</li>
-        <li><i class="cell corrupt"></i>Checksum mismatch</li>
-        <li><i class="cell stale"></i>Out of date</li>
-        <li><i class="cell offline"></i>Node offline</li>
-        <li><i class="cell healthy f-modified"></i>File modified</li>
-        <li><i class="cell deleted"></i>File deleted</li>
-      </ul>
-    </section>
-
     <div class="grid">
       <!-- Files -->
       <section class="panel files" aria-labelledby="filesTitle">
@@ -74,6 +45,7 @@
             <p class="hint">Changed files show in <b class="tag-orange">orange</b>. Deleted files show in <b class="tag-red">red</b>.</p>
           </div>
           <div class="controls">
+            <button class="btn primary" data-act="repair">Run repair now</button>
             <button class="btn primary" data-act="upload">Upload files</button>
             <button class="btn" data-act="simchange">Simulate edit</button>
             <button class="btn" data-act="simdelete">Simulate delete</button>
@@ -143,7 +115,7 @@
   </dialog>
 
   <input type="file" id="fileInput" multiple hidden />
-  <div class="dropveil" id="dropveil"><div>Drop files to store them on 3 nodes</div></div>
+  <div class="dropveil" id="dropveil"><div>Drop files here to store them</div></div>
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
   <script src="script.js"></script>

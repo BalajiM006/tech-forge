@@ -480,14 +480,12 @@
 
   function renderVitals() {
     const pct = clusterHealth();
-    const up = state.nodes.filter((n) => n.up).length;
     const active = state.files.filter((f) => f.status !== 'deleted').length;
     const mod = state.files.filter((f) => f.status === 'modified').length;
     const del = state.files.filter((f) => f.status === 'deleted').length;
     const barCls = pct >= 90 ? '' : pct >= 60 ? 'warn' : 'bad';
     $('#vitals').innerHTML = `
       <div class="vital"><dd>${pct}%</dd><dt>Cluster health</dt><span class="bar"><i class="${barCls}" style="width:${pct}%"></i></span></div>
-      <div class="vital"><dd>${up}/${state.nodes.length}</dd><dt>Nodes online</dt></div>
       <div class="vital"><dd>${active}</dd><dt>Files stored</dt></div>
       <div class="vital v-orange"><dd>${mod}</dd><dt>Modified</dt></div>
       <div class="vital v-red"><dd>${del}</dd><dt>Deleted</dt></div>
@@ -495,7 +493,9 @@
   }
 
   function renderNodes() {
-    $('#nodes').innerHTML = state.nodes.map((n) => {
+    const el = $('#nodes');
+    if (!el) return;
+    el.innerHTML = state.nodes.map((n) => {
       const items = [];
       state.files.forEach((f) => f.replicas.forEach((r) => { if (r.node === n.id) items.push({ f, r }); }));
       const total = Math.max(SLOTS, items.length);
@@ -674,16 +674,22 @@
   $('#search').addEventListener('input', (e) => { query = e.target.value.trim().toLowerCase(); render(); });
   $('#fileInput').addEventListener('change', (e) => { handleFiles(e.target.files); e.target.value = ''; });
 
-  $('#tAuto').addEventListener('change', (e) => {
-    state.settings.auto = e.target.checked;
-    log('info', e.target.checked ? 'Auto-repair turned on.' : 'Auto-repair turned off.');
-    save(); renderHeartbeat(); render();
-  });
-  $('#tChaos').addEventListener('change', (e) => {
-    state.settings.chaos = e.target.checked;
-    log('info', e.target.checked ? 'Chaos mode on: random failures every few seconds.' : 'Chaos mode off.');
-    save(); render();
-  });
+  const tAuto = $('#tAuto');
+  if (tAuto) {
+    tAuto.addEventListener('change', (e) => {
+      state.settings.auto = e.target.checked;
+      log('info', e.target.checked ? 'Auto-repair turned on.' : 'Auto-repair turned off.');
+      save(); renderHeartbeat(); render();
+    });
+  }
+  const tChaos = $('#tChaos');
+  if (tChaos) {
+    tChaos.addEventListener('change', (e) => {
+      state.settings.chaos = e.target.checked;
+      log('info', e.target.checked ? 'Chaos mode on: random failures every few seconds.' : 'Chaos mode off.');
+      save(); render();
+    });
+  }
 
   // Drag and drop
   let dragDepth = 0;
@@ -705,8 +711,8 @@
   /* ---------- start ---------- */
 
   load();
-  $('#tAuto').checked = state.settings.auto;
-  $('#tChaos').checked = state.settings.chaos;
+  if (tAuto) tAuto.checked = state.settings.auto;
+  if (tChaos) tChaos.checked = state.settings.chaos;
   render();
   renderHeartbeat();
 
