@@ -9,8 +9,7 @@
   const authMessage = document.querySelector('#authMessage');
   const authForms = {
     signin: document.querySelector('#signinForm'),
-    signup: document.querySelector('#signupForm'),
-    forgot: document.querySelector('#forgotForm')
+    signup: document.querySelector('#signupForm')
   };
   let appIntervals = [];
 
@@ -101,19 +100,6 @@
           return;
         }
 
-        if (name === 'forgot') {
-          const account = accounts.find((entry) => entry.username.toLowerCase() === username.toLowerCase());
-          if (!account) throw new Error('No account was found with that username.');
-          if (password !== data.get('confirmPassword')) throw new Error('The passwords do not match.');
-          account.salt = makeSalt();
-          account.passwordHash = await hashPassword(password, account.salt);
-          localStorage.setItem(AUTH_KEY, JSON.stringify(accounts));
-          showAuthView('signin');
-          document.querySelector('#signinUsername').value = username;
-          showAuthMessage('Password updated. You can now sign in.', true);
-          return;
-        }
-
         const account = accounts.find((entry) => entry.username.toLowerCase() === username.toLowerCase());
         if (!account || account.passwordHash !== await hashPassword(password, account.salt)) {
           throw new Error('Incorrect username or password.');
@@ -130,6 +116,9 @@
   document.addEventListener('click', (event) => {
     const viewButton = event.target.closest('[data-auth-view]');
     if (viewButton) showAuthView(viewButton.dataset.authView);
+    if (event.target.closest('[data-auth-placeholder="forgot"]')) {
+      showAuthMessage('Password recovery is not available in this demo.');
+    }
   });
 
   document.querySelector('#signoutButton').addEventListener('click', () => {
