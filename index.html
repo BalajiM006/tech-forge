@@ -35,11 +35,11 @@
 
       <form class="auth-form" id="signinForm">
         <h1>Welcome back</h1>
-        <p class="auth-copy">Sign in to continue to your workspace.</p>
+        <p class="auth-copy">Sign in to continue to your workspace. (Demo: <strong style="color:var(--teal)">demo</strong> / <strong style="color:var(--teal)">demo1234</strong>)</p>
         <label for="signinUsername">Username</label>
-        <input id="signinUsername" name="username" autocomplete="username" required />
+        <input id="signinUsername" name="username" autocomplete="username" value="demo" required />
         <label for="signinPassword">Password</label>
-        <input id="signinPassword" name="password" type="password" autocomplete="current-password" required />
+        <input id="signinPassword" name="password" type="password" autocomplete="current-password" value="demo1234" required />
         <div class="auth-links"><button class="text-button" type="button">Forgot password?</button></div>
         <button class="auth-submit" type="submit">Sign in</button>
         <p class="auth-switch">New to Mend? <button class="text-button" type="button" data-auth-view="signup">Create an account</button></p>
@@ -82,14 +82,46 @@
         <span class="pulse" id="pulse"></span>
         <span id="hbText">Starting health checks…</span>
       </div>
+      <div class="view-switch-box" id="viewSwitcher" role="radiogroup" aria-label="View mode">
+        <button class="view-switch-btn active" id="btnModeWorkspace" type="button" data-mode="workspace">Workspace</button>
+        <button class="view-switch-btn" id="btnModeAdmin" type="button" data-mode="admin">Cluster Telemetry (Judges)</button>
+      </div>
       <div class="account-menu"><span id="accountName"></span><button class="account-signout" id="signoutButton" type="button">Sign out</button></div>
     </div>
-    <div class="wrap">
+    <div class="wrap vitals-row">
       <dl class="vitals" id="vitals"></dl>
     </div>
   </header>
 
   <div class="wrap page">
+
+    <!-- Cluster Telemetry (Judges Mode) -->
+    <section class="cluster admin-only" id="clusterSection" aria-labelledby="clusterTitle">
+      <div class="section-head">
+        <div>
+          <h2 id="clusterTitle">Storage Nodes Telemetry</h2>
+          <p class="hint">5 independent processes across 3 failure domains (RF=3). Live chunk placement &amp; hash integrity.</p>
+        </div>
+        <div class="controls">
+          <label class="switch"><input type="checkbox" id="tAuto" checked /><span class="track"></span>Auto-repair</label>
+          <label class="switch"><input type="checkbox" id="tChaos" /><span class="track"></span>Chaos mode</label>
+          <button class="btn admin-only" data-act="corrupt-replica">Corrupt replica</button>
+          <button class="btn admin-only" data-act="kill-node">Kill node</button>
+          <button class="btn primary admin-only" data-act="repair">Run repair now</button>
+        </div>
+      </div>
+
+      <div class="nodes" id="nodes"></div>
+
+      <ul class="legend" aria-label="Replica colours">
+        <li><i class="cell healthy"></i>Healthy</li>
+        <li><i class="cell repairing"></i>Syncing</li>
+        <li><i class="cell corrupt"></i>Corrupt</li>
+        <li><i class="cell offline"></i>Node offline</li>
+        <li><i class="cell healthy f-modified"></i>Modified version</li>
+        <li><i class="cell deleted"></i>Marked deleted</li>
+      </ul>
+    </section>
 
     <div class="grid">
       <!-- Files -->
@@ -100,16 +132,17 @@
             <p class="hint">Changed files show in <b class="tag-orange">orange</b>. Deleted files show in <b class="tag-red">red</b>.</p>
           </div>
           <div class="controls">
-            <button class="btn primary" data-act="repair">Run repair now</button>
             <button class="btn primary" data-act="upload">Upload files</button>
-            <button class="btn" data-act="simchange">Simulate edit</button>
-            <button class="btn" data-act="simdelete">Simulate delete</button>
+            <button class="btn admin-only" data-act="repair">Run repair now</button>
+            <button class="btn admin-only" data-act="corrupt-replica">Corrupt replica</button>
+            <button class="btn admin-only" data-act="kill-node">Kill node</button>
           </div>
         </div>
 
         <div class="toolbar">
           <div class="filters" id="filters" role="tablist" aria-label="Filter files"></div>
           <div class="toolbar-right">
+            <button class="btn small danger" data-act="purge-all-deleted" id="btnPurgeAllDeleted" style="display:none">Empty trash</button>
             <button class="btn small ghost" data-act="clearreviewed">Mark all reviewed</button>
             <input class="search" id="search" type="search" placeholder="Search files" aria-label="Search files" />
           </div>
@@ -120,10 +153,10 @@
             <thead>
               <tr>
                 <th>File</th>
-                <th>Replicas</th>
+                <th class="admin-only">Replicas</th>
                 <th>Version</th>
                 <th>Size</th>
-                <th>Checksum</th>
+                <th class="admin-only">Checksum</th>
                 <th>Changed</th>
                 <th>Status</th>
                 <th class="right">Actions</th>
@@ -135,7 +168,7 @@
       </section>
 
       <!-- Activity -->
-      <aside class="panel activity" aria-labelledby="logTitle">
+      <aside class="panel activity admin-only" aria-labelledby="logTitle">
         <div class="section-head">
           <h2 id="logTitle">Activity</h2>
           <button class="btn small ghost" data-act="reset">Reset demo</button>
@@ -145,28 +178,26 @@
     </div>
   </div>
 
-  <!-- Editor dialog -->
-  <dialog id="editor" aria-labelledby="edTitle">
-    <form method="dialog" id="edForm" class="ed">
-      <div class="ed-head">
-        <h3 id="edTitle">Edit file</h3>
-        <button type="button" class="btn small ghost" data-act="closeEditor" aria-label="Close editor">Close</button>
-      </div>
-      <textarea id="edText" spellcheck="false" aria-label="File content"></textarea>
-      <div class="ed-side">
-        <h4>Replicas</h4>
-        <div id="edReplicas" class="ed-replicas"></div>
-        <h4>Version history</h4>
-        <ul id="edHistory" class="ed-history"></ul>
-      </div>
-      <div class="ed-foot">
-        <span class="hint" id="edHint"></span>
+
+  <!-- Chunk Inspector & Healing Dialog -->
+  <dialog id="chunkDialog" class="chunk-dialog" aria-labelledby="chunkDialogTitle">
+    <div class="chunk-modal">
+      <div class="chunk-modal-head">
         <div>
-          <button type="button" class="btn" data-act="closeEditor">Cancel</button>
-          <button type="button" class="btn primary" data-act="saveEditor">Save changes</button>
+          <h3 id="chunkDialogTitle">Chunk Architecture &amp; Delta Analysis</h3>
+          <p class="hint" id="chunkDialogSubtitle">Inspect chunk replicas, bit-rot detection, and differential syncing</p>
+        </div>
+        <button type="button" class="btn small ghost" data-act="closeChunkDialog" aria-label="Close dialog">Close</button>
+      </div>
+      <div class="chunk-modal-body" id="chunkModalBody"></div>
+      <div class="chunk-modal-foot">
+        <span class="hint" id="chunkModalFootHint"></span>
+        <div class="chunk-modal-actions">
+          <button type="button" class="btn ghost" data-act="closeChunkDialog">Cancel</button>
+          <button type="button" class="btn warn" id="btnMendModal" data-act="mend-from-modal">Mend &amp; Restore from Chunks</button>
         </div>
       </div>
-    </form>
+    </div>
   </dialog>
 
   <input type="file" id="fileInput" multiple hidden />

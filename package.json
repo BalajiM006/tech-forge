@@ -1,0 +1,14 @@
+{
+  "name": "mend-replicated-store",
+  "version": "1.0.0",
+  "description": "Self-Repairing Replicated Multi-Process Object Store",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-cluster.js"
+  },
+  "keywords": ["distributed-systems", "object-store", "replication", "self-healing", "hash-verification"],
+  "author": "Mend Team",
+  "license": "MIT"
+}

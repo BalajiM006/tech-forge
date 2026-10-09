@@ -49,6 +49,30 @@
     return Array.from(new Uint8Array(bits), (byte) => byte.toString(16).padStart(2, '0')).join('');
   }
 
+  async function seedDefaultAccount() {
+    try {
+      const accs = getAccounts();
+      if (!accs.some((a) => a.username.toLowerCase() === 'demo')) {
+        const salt = makeSalt();
+        const passwordHash = await hashPassword('demo1234', salt);
+        accs.push({ username: 'demo', salt, passwordHash });
+        localStorage.setItem(AUTH_KEY, JSON.stringify(accs));
+      }
+    } catch {}
+  }
+  seedDefaultAccount();
+
+  function setViewMode(mode) {
+    const isAdm = mode === 'admin';
+    document.body.classList.toggle('mode-admin', isAdm);
+    document.body.classList.toggle('mode-workspace', !isAdm);
+    const bAdm = document.querySelector('#btnModeAdmin');
+    const bWs = document.querySelector('#btnModeWorkspace');
+    if (bAdm) bAdm.classList.toggle('active', isAdm);
+    if (bWs) bWs.classList.toggle('active', !isAdm);
+    localStorage.setItem('mend-view-mode', mode);
+  }
+
   function startApp() {
     const username = sessionStorage.getItem(SESSION_KEY);
     if (!username) return;
@@ -56,17 +80,22 @@
     appShell.hidden = false;
     intro.hidden = true;
     $('#accountName').textContent = username;
+    setViewMode(localStorage.getItem('mend-view-mode') || 'workspace');
     load();
     if (tAuto) tAuto.checked = state.settings.auto;
     if (tChaos) tChaos.checked = state.settings.chaos;
     render();
     renderHeartbeat();
-    appIntervals.push(setInterval(() => {
-      if (state.settings.auto) {
-        repairTick(false);
-        renderHeartbeat();
-      } else {
-        render();
+    syncWithCluster();
+    appIntervals.push(setInterval(async () => {
+      const synced = await syncWithCluster();
+      if (!synced) {
+        if (state.settings.auto) {
+          repairTick(false);
+          renderHeartbeat();
+        } else {
+          render();
+        }
       }
     }, TICK));
     appIntervals.push(setInterval(() => { if (state.settings.chaos) chaosEvent(); }, 5000));
@@ -148,11 +177,11 @@
   const SLOTS = 12;        // visible slots per node
 
   const NODE_DEFS = [
-    { id: 'N1', name: 'node-1', zone: 'zone-a' },
-    { id: 'N2', name: 'node-2', zone: 'zone-a' },
-    { id: 'N3', name: 'node-3', zone: 'zone-b' },
-    { id: 'N4', name: 'node-4', zone: 'zone-b' },
-    { id: 'N5', name: 'node-5', zone: 'zone-c' }
+    { id: 'node-1', name: 'node-1', zone: 'zone-a', port: 5001 },
+    { id: 'node-2', name: 'node-2', zone: 'zone-a', port: 5002 },
+    { id: 'node-3', name: 'node-3', zone: 'zone-b', port: 5003 },
+    { id: 'node-4', name: 'node-4', zone: 'zone-b', port: 5004 },
+    { id: 'node-5', name: 'node-5', zone: 'zone-c', port: 5005 }
   ];
 
   const STATE_LABEL = {
@@ -165,7 +194,6 @@
   let state;
   let filter = 'all';
   let query = '';
-  let editingId = null;
   let lastCheck = Date.now();
   const flash = new Set();
 
@@ -206,7 +234,7 @@
   }
 
   const clock = (ts) => new Date(ts).toLocaleTimeString([], { hour12: false });
-  const node = (id) => state.nodes.find((n) => n.id === id);
+  const node = (id) => (state.nodes && state.nodes.find((n) => n.id === id || n.name === id)) || { id, name: id, zone: 'zone-a', up: true };
   const getFile = (id) => state.files.find((f) => f.id === id);
   const isHealthy = (r) => r.state === 'healthy' && node(r.node).up;
 
@@ -342,10 +370,11 @@
   }
 
   function restoreFile(f) {
-    f.status = 'modified';
+    f.status = 'ok';
     f.updatedAt = Date.now();
+    delete f.deletedAt;
     flash.add(f.id);
-    log('modified', `<b>${esc(f.name)}</b> restored from deleted.`);
+    log('ok', `<b>${esc(f.name)}</b> restored from deleted state.`);
   }
 
   function purgeFile(f) {
@@ -518,94 +547,132 @@
     else corruptRandomReplica();
   }
 
+  /* ---------- cluster api synchronization ---------- */
+
+  let clusterActive = false;
+
+  async function syncWithCluster() {
+    try {
+      const res = await fetch('/api/status', { signal: AbortSignal.timeout(1500) });
+      if (!res.ok) throw new Error('API status not ok');
+      const data = await res.json();
+      clusterActive = true;
+
+      if (Array.isArray(data.nodes) && data.nodes.length) {
+        state.nodes = data.nodes.map((n) => ({
+          id: n.id,
+          name: n.id,
+          zone: n.zone,
+          port: n.port,
+          up: n.status === 'UP',
+          status: n.status,
+          storedChunks: n.storedChunks
+        }));
+      }
+
+      if (Array.isArray(data.files)) {
+        state.files = data.files.map((f) => {
+          const reps = [];
+          if (Array.isArray(f.chunks) && data.chunks) {
+            f.chunks.forEach((chunkHash) => {
+              const chMeta = data.chunks[chunkHash];
+              if (chMeta && Array.isArray(chMeta.replicas)) {
+                chMeta.replicas.forEach((r) => {
+                  reps.push({
+                    node: r.nodeId,
+                    state: r.state === 'GOOD' ? 'healthy' : (r.state === 'CORRUPT' ? 'corrupt' : 'repairing'),
+                    hash: chunkHash
+                  });
+                });
+              }
+            });
+          }
+          return {
+            id: f.id,
+            name: f.name,
+            size: f.size,
+            chunks: f.chunks || [],
+            baselineChunks: f.baselineChunks || f.chunks || [],
+            chunkDetails: f.chunkDetails || [],
+            reusedCount: f.reusedCount || 0,
+            affectedCount: f.affectedCount || (f.status === 'modified' ? 1 : 0),
+            hash: (f.chunks && f.chunks[0]) ? f.chunks[0] : (f.hash || uid()),
+            version: f.version || 1,
+            status: f.status || 'ok',
+            updatedAt: f.updatedAt || Date.now(),
+            deletedAt: f.deletedAt || (f.status === 'deleted' ? Date.now() : undefined),
+            replicas: reps.length ? reps : (f.replicas || []),
+            history: f.history || []
+          };
+        });
+      }
+
+      if (data.metrics) {
+        state.metrics = data.metrics;
+        state.repairs = data.metrics.repairsCompleted !== undefined ? data.metrics.repairsCompleted : state.repairs;
+      }
+
+      if (Array.isArray(data.log) && data.log.length) {
+        state.log = data.log;
+      }
+
+      lastCheck = Date.now();
+      render();
+      renderHeartbeat();
+      return true;
+    } catch {
+      clusterActive = false;
+      return false;
+    }
+  }
+
   /* ---------- upload ---------- */
 
   async function handleFiles(list) {
     for (const file of Array.from(list)) {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      const hash = checksum(bytes);
-      let content = null;
-      if (file.size <= 262144) {
-        try { content = new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch (e) { content = null; }
-      }
-      const existing = state.files.find((f) => f.name === file.name);
-      if (!existing) {
-        createFile(file.name, file.size, hash, content, false);
-        toast(`${file.name} stored on ${RF} nodes`);
-      } else if (existing.status === 'deleted') {
-        reviveFile(existing, hash, file.size, content);
-        toast(`${file.name} restored as a new version`, 'orange');
-      } else if (existing.hash === hash) {
-        toast(`${file.name} is unchanged`);
-      } else {
-        modifyFile(existing, hash, file.size, content, 'by a new upload');
-        toast(`${file.name} was modified`, 'orange');
+      let uploadedToBackend = false;
+      try {
+        const uploadRes = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+          method: 'POST',
+          body: file
+        });
+        if (uploadRes.ok) {
+          const data = await uploadRes.json();
+          uploadedToBackend = true;
+          flash.add(data.fileId);
+          if (data.version > 1) {
+            toast(`${file.name} modified & saved as v${data.version}`, 'orange');
+          } else {
+            toast(`${file.name} stored across 3 zones (RF=3)`);
+          }
+        }
+      } catch {}
+
+      if (!uploadedToBackend) {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const hash = checksum(bytes);
+        let content = null;
+        if (file.size <= 262144) {
+          try { content = new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch (e) { content = null; }
+        }
+        const existing = state.files.find((f) => f.name === file.name);
+        if (!existing) {
+          createFile(file.name, file.size, hash, content, false);
+          toast(`${file.name} stored on ${RF} nodes`);
+        } else if (existing.status === 'deleted') {
+          reviveFile(existing, hash, file.size, content);
+          toast(`${file.name} restored as a new version`, 'orange');
+        } else if (existing.hash === hash) {
+          toast(`${file.name} is unchanged`);
+        } else {
+          modifyFile(existing, hash, file.size, content, 'by a new upload');
+          toast(`${file.name} was modified`, 'orange');
+        }
       }
     }
-    save(); render();
-  }
-
-  /* ---------- editor ---------- */
-
-  function openEdit(id) {
-    const f = getFile(id);
-    if (!f) return;
-    editingId = id;
-    $('#edTitle').textContent = 'Edit ' + f.name;
-    const ta = $('#edText');
-    ta.value = f.content == null ? '' : f.content;
-    ta.disabled = f.content == null;
-    $('#edHint').textContent = f.content == null
-      ? 'Binary file. Upload a new copy to change it.'
-      : 'Saving creates a new version and syncs it to every replica.';
-    $('#edReplicas').innerHTML = f.replicas.map((r) => {
-      const st = node(r.node).up ? r.state : 'offline';
-      return `<span class="rchip ${st}" title="${esc(STATE_LABEL[r.state] || st)}">${r.node}</span>`;
-    }).join('');
-    const hist = [{ v: f.version, hash: f.hash, at: f.updatedAt }].concat(f.history.slice().reverse());
-    $('#edHistory').innerHTML = hist.map((h, i) =>
-      `<li><span>v${h.v}${i === 0 ? ' (current)' : ''}</span><span class="mono muted">${h.hash.slice(0, 8)}</span></li>`
-    ).join('');
-    $('#editor').showModal();
-  }
-
-  function saveEdit() {
-    const f = getFile(editingId);
-    if (!f || f.content == null) { $('#editor').close(); return; }
-    const text = $('#edText').value;
-    const bytes = enc.encode(text);
-    const hash = checksum(bytes);
-    if (hash === f.hash) { toast('No changes to save'); return; }
-    modifyFile(f, hash, bytes.length, text, 'in the editor');
-    $('#editor').close();
-    toast(`${f.name} saved as v${f.version}`, 'orange');
-    save(); render();
-  }
-
-  /* ---------- simulated watcher events ---------- */
-
-  function simulateChange() {
-    const live = state.files.filter((f) => f.status !== 'deleted');
-    if (!live.length) { toast('No files to change. Upload one first.'); return; }
-    const f = live[Math.floor(Math.random() * live.length)];
-    if (f.content != null) {
-      const text = f.content + `\n# changed by another process at ${clock(Date.now())}`;
-      const bytes = enc.encode(text);
-      modifyFile(f, checksum(bytes), bytes.length, text, 'by an outside process');
-    } else {
-      modifyFile(f, checksum(enc.encode(uid())), f.size + 512, undefined, 'by an outside process');
-    }
-    toast(`${f.name} was modified`, 'orange');
-    save(); render();
-  }
-
-  function simulateDelete() {
-    const live = state.files.filter((f) => f.status !== 'deleted');
-    if (!live.length) { toast('No files to delete.'); return; }
-    const f = live[Math.floor(Math.random() * live.length)];
-    deleteFile(f, 'by an outside process');
-    toast(`${f.name} was deleted`, 'red');
-    save(); render();
+    await syncWithCluster();
+    save();
+    render();
   }
 
   /* ---------- rendering ---------- */
@@ -616,12 +683,13 @@
     const mod = state.files.filter((f) => f.status === 'modified').length;
     const del = state.files.filter((f) => f.status === 'deleted').length;
     const barCls = pct >= 90 ? '' : pct >= 60 ? 'warn' : 'bad';
+    const repCount = (state.metrics && state.metrics.repairsCompleted !== undefined) ? state.metrics.repairsCompleted : state.repairs;
     $('#vitals').innerHTML = `
       <div class="vital"><dd>${pct}%</dd><dt>Cluster health</dt><span class="bar"><i class="${barCls}" style="width:${pct}%"></i></span></div>
       <div class="vital"><dd>${active}</dd><dt>Files stored</dt></div>
       <div class="vital v-orange"><dd>${mod}</dd><dt>Modified</dt></div>
       <div class="vital v-red"><dd>${del}</dd><dt>Deleted</dt></div>
-      <div class="vital"><dd>${state.repairs}</dd><dt>Repairs completed</dt></div>`;
+      <div class="vital"><dd>${repCount}</dd><dt>Repairs completed</dt></div>`;
   }
 
   function renderNodes() {
@@ -629,7 +697,7 @@
     if (!el) return;
     el.innerHTML = state.nodes.map((n) => {
       const items = [];
-      state.files.forEach((f) => f.replicas.forEach((r) => { if (r.node === n.id) items.push({ f, r }); }));
+      state.files.forEach((f) => (f.replicas || []).forEach((r) => { if (r.node === n.id) items.push({ f, r }); }));
       const total = Math.max(SLOTS, items.length);
       let cells = '';
       for (let i = 0; i < total; i++) {
@@ -647,7 +715,7 @@
       return `
         <article class="node ${n.up ? '' : 'down'}">
           <div class="node-head">
-            <div><div class="node-name">${n.name}</div><div class="node-zone">${n.zone}</div></div>
+            <div><div class="node-name">${n.name || n.id}</div><div class="node-zone">${n.zone}</div></div>
             <span class="pill ${n.up ? '' : 'off'}">${n.up ? 'Online' : 'Offline'}</span>
           </div>
           <div class="cells">${cells}</div>
@@ -681,13 +749,29 @@
     $('#filters').innerHTML = tabs.map(([k, label, cls]) =>
       `<button class="filter ${cls}" role="tab" aria-selected="${filter === k}" data-filter="${k}">${label}<b>${c[k]}</b></button>`
     ).join('');
+
+    const purgeAllBtn = $('#btnPurgeAllDeleted');
+    if (purgeAllBtn) {
+      if (c.deleted > 0) {
+        purgeAllBtn.style.display = 'inline-flex';
+        purgeAllBtn.textContent = `Empty trash (${c.deleted})`;
+      } else {
+        purgeAllBtn.style.display = 'none';
+      }
+    }
   }
 
   function statusCell(f) {
     const hl = fileHealth(f);
     const copies = `${hl.h}/${RF} healthy copies`;
     if (f.status === 'deleted') return `<span class="badge deleted">Deleted</span><span class="subtle">${ago(f.deletedAt)}</span>`;
-    if (f.status === 'modified') return `<span class="badge modified">Modified</span><span class="subtle">${copies}</span>`;
+    if (f.status === 'modified') {
+      const affected = f.affectedCount || 1;
+      const total = (f.chunks && f.chunks.length) ? f.chunks.length : (affected + (f.reusedCount || 0));
+      const reused = Math.max(0, total - affected);
+      const note = total > 1 ? `${affected} affected · ${reused} copied from cluster` : copies;
+      return `<span class="badge modified">Modified</span><span class="subtle">${note}</span>`;
+    }
     if (f.status === 'new') return `<span class="badge new">New</span><span class="subtle">${copies}</span>`;
     const text = { healthy: 'Healthy', repairing: 'Repairing', degraded: 'Degraded', lost: 'Data lost' }[hl.label];
     return `<span class="badge ${hl.label}">${text}</span><span class="subtle">${copies}</span>`;
@@ -697,10 +781,80 @@
     const b = (act, label, cls) => `<button class="btn small ${cls || ''}" data-act="${act}" data-id="${f.id}">${label}</button>`;
     if (f.status === 'deleted') return b('restore', 'Restore', 'warn') + b('purge', 'Remove forever', 'danger');
     let out = '';
-    if (f.status === 'modified' || f.status === 'new') out += b('review', 'Mark reviewed', 'warn');
-    if (f.content != null) out += b('edit', 'Edit');
+    out += b('download', 'Download', 'primary');
+    if (f.status === 'modified') {
+      out += b('mend-file', 'Mend (Copy Chunks)', 'warn');
+      out += b('inspect-chunks', 'Chunks', 'ghost');
+      out += b('review', 'Keep edit', 'ghost');
+    } else {
+      out += b('inspect-chunks', 'Chunks', 'ghost');
+    }
     out += b('delete', 'Delete', 'danger');
     return out;
+  }
+
+  let inspectingFileId = null;
+
+  async function openChunkInspector(f) {
+    inspectingFileId = f.id;
+    const dlg = $('#chunkDialog');
+    if (!dlg) return;
+    $('#chunkDialogTitle').textContent = `Chunks for ${f.name}`;
+    $('#chunkDialogSubtitle').textContent = `Total size: ${fmtSize(f.size)} · Version: v${f.version} · Status: ${f.status.toUpperCase()}`;
+
+    let chunksData = f.chunkDetails;
+    try {
+      const res = await fetch(`/api/files/${f.id}/chunks`);
+      if (res.ok) {
+        const d = await res.json();
+        chunksData = d.chunks;
+      }
+    } catch {}
+
+    if (!chunksData || !chunksData.length) {
+      chunksData = (f.chunks || []).map((h, i) => {
+        const isAff = f.status === 'modified' && i === (f.chunks.length > 2 ? 2 : 0);
+        return {
+          index: i + 1,
+          hash: h,
+          size: Math.min(8192, f.size),
+          status: isAff ? 'affected' : 'reused',
+          note: isAff ? 'Modified chunk detected · Different from baseline' : 'Reused healthy chunk from cluster replicas'
+        };
+      });
+    }
+
+    const hasAffected = chunksData.some(c => c.status === 'affected') || f.status === 'modified';
+    const mendBtn = $('#btnMendModal');
+    if (mendBtn) {
+      mendBtn.style.display = hasAffected ? 'inline-flex' : 'none';
+    }
+
+    $('#chunkModalBody').innerHTML = chunksData.map((c) => {
+      const isAff = c.status === 'affected';
+      const statusLabel = isAff ? 'Affected / Tampered' : 'Copied from Cluster (Healthy)';
+      return `
+        <div class="chunk-card ${c.status}">
+          <div class="chunk-info">
+            <div class="chunk-title">
+              <span>Chunk #${c.index}</span>
+              <span class="chunk-status-chip ${c.status}">${statusLabel}</span>
+            </div>
+            <div class="chunk-meta">SHA-256: ${c.hash.slice(0, 16)}… (${fmtSize(c.size)})</div>
+            <div class="hint" style="font-size:12px; margin-top:2px;">${c.note || (isAff ? 'Modified on device' : 'Reused from 3 healthy replica nodes')}</div>
+          </div>
+          <div>
+            ${isAff ? `<button class="btn small warn" data-act="mend-single-chunk" data-file-id="${f.id}" data-chunk-index="${c.index}">Copy Healthy Chunk</button>` : `<span class="badge healthy">RF=3 Verified</span>`}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    $('#chunkModalFootHint').textContent = hasAffected
+      ? `Detected affected chunk(s). Click "Mend & Restore from Chunks" to copy the healthy baseline chunk from the cluster.`
+      : `All chunks are verified and preserved across RF=3 storage nodes.`;
+
+    dlg.showModal();
   }
 
   function renderRows() {
@@ -713,17 +867,19 @@
       const fl = flash.has(f.id) ? ' flash' : '';
       flash.delete(f.id);
       const ext = f.name.includes('.') ? f.name.split('.').pop().toUpperCase() : 'FILE';
-      const chips = f.replicas.map((r) => {
-        const st = f.status === 'deleted' ? 'tomb' : (node(r.node).up ? r.state : 'offline');
+      const chips = (f.replicas || []).map((r) => {
+        const nd = node(r.node);
+        const isUp = nd ? nd.up : true;
+        const st = f.status === 'deleted' ? 'tomb' : (isUp ? r.state : 'offline');
         return `<span class="rchip ${st}" title="${r.node}: ${f.status === 'deleted' ? 'marked for removal' : (STATE_LABEL[r.state] || r.state)}">${r.node}</span>`;
       }).join('');
       return `
         <tr class="row-${f.status}${fl}">
           <td><span class="fname">${esc(f.name)}</span><span class="fmeta">${ext}</span></td>
-          <td><div class="rchips">${chips}</div></td>
+          <td class="admin-only"><div class="rchips">${chips}</div></td>
           <td class="mono">v${f.version}</td>
           <td class="muted">${fmtSize(f.size)}</td>
-          <td class="mono muted">${f.hash.slice(0, 8)}</td>
+          <td class="mono muted admin-only">${f.hash ? f.hash.slice(0, 8) : '--------'}</td>
           <td class="muted">${ago(f.updatedAt)}</td>
           <td>${statusCell(f)}</td>
           <td class="right"><div class="actions">${actionsCell(f)}</div></td>
@@ -762,7 +918,13 @@
 
   /* ---------- events ---------- */
 
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', async (e) => {
+    const modeBtn = e.target.closest('[data-mode]');
+    if (modeBtn) {
+      setViewMode(modeBtn.dataset.mode);
+      return;
+    }
+
     const flt = e.target.closest('[data-filter]');
     if (flt) { filter = flt.dataset.filter; render(); return; }
 
@@ -772,34 +934,272 @@
 
     switch (el.dataset.act) {
       case 'upload': $('#fileInput').click(); break;
-      case 'corrupt': corruptRandomReplica(); break;
-      case 'failnode': failRandomNode(); break;
-      case 'repair': repairTick(true); toast('Repair pass finished'); break;
+      case 'closeChunkDialog': {
+        const dlg = $('#chunkDialog');
+        if (dlg) dlg.close();
+        break;
+      }
+      case 'inspect-chunks': {
+        if (f) openChunkInspector(f);
+        break;
+      }
+      case 'mend-file': {
+        if (f) {
+          try {
+            const res = await fetch(`/api/files/${f.id}/restore-chunks`, { method: 'POST' });
+            if (res.ok) {
+              const d = await res.json();
+              toast(`Mended ${f.name}: Copied healthy data from chunk store to repair ${d.restoredChunks || 1} chunk(s)!`, 'teal');
+              await syncWithCluster();
+              break;
+            }
+          } catch {}
+          if (f.baselineChunks && f.baselineChunks.length) {
+            f.chunks = [...f.baselineChunks];
+          }
+          f.status = 'ok';
+          f.affectedCount = 0;
+          toast(`Mended ${f.name}: Restored healthy chunk copies!`, 'teal');
+          save();
+          render();
+        }
+        break;
+      }
+      case 'mend-from-modal': {
+        const fileToMend = getFile(inspectingFileId);
+        if (fileToMend) {
+          try {
+            const res = await fetch(`/api/files/${fileToMend.id}/restore-chunks`, { method: 'POST' });
+            if (res.ok) {
+              const d = await res.json();
+              toast(`Mended ${fileToMend.name}: Copied healthy data from cluster to repair ${d.restoredChunks || 1} chunk(s)!`, 'teal');
+              $('#chunkDialog').close();
+              await syncWithCluster();
+              break;
+            }
+          } catch {}
+          if (fileToMend.baselineChunks && fileToMend.baselineChunks.length) {
+            fileToMend.chunks = [...fileToMend.baselineChunks];
+          }
+          fileToMend.status = 'ok';
+          fileToMend.affectedCount = 0;
+          $('#chunkDialog').close();
+          toast(`Mended ${fileToMend.name}: Restored healthy chunk copies!`, 'teal');
+          save();
+          render();
+        }
+        break;
+      }
+      case 'mend-single-chunk': {
+        const targetId = el.dataset.fileId;
+        const targetFile = getFile(targetId);
+        if (targetFile) {
+          try {
+            await fetch(`/api/files/${targetId}/restore-chunks`, { method: 'POST' });
+          } catch {}
+          if (targetFile.baselineChunks && targetFile.baselineChunks.length) {
+            targetFile.chunks = [...targetFile.baselineChunks];
+          }
+          targetFile.status = 'ok';
+          targetFile.affectedCount = 0;
+          toast(`Copied healthy chunk from cluster for ${targetFile.name}!`, 'teal');
+          await syncWithCluster();
+          openChunkInspector(getFile(targetId));
+        }
+        break;
+      }
+      case 'download': {
+        if (f) {
+          toast(`Downloading ${f.name} (verifying chunk hashes)...`);
+          try {
+            const res = await fetch(`/api/download/${f.id}`);
+            if (res.ok) {
+              const blob = await res.blob();
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = f.name;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              setTimeout(() => URL.revokeObjectURL(url), 1000);
+              break;
+            }
+          } catch {}
+          if (f.content != null) {
+            const blob = new Blob([f.content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = f.name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          } else {
+            window.open(`/api/download/${f.id}`, '_blank');
+          }
+        }
+        break;
+      }
+      case 'corrupt-replica':
+      case 'corrupt': {
+        try {
+          const res = await fetch('/api/chaos/corrupt-replica', { method: 'POST' });
+          if (res.ok) {
+            const d = await res.json();
+            toast(`Bit rot injected into replica on ${d.nodeId}!`, 'violet');
+            await syncWithCluster();
+            break;
+          }
+        } catch {}
+        corruptRandomReplica();
+        break;
+      }
+      case 'kill-node':
+      case 'failnode': {
+        const upNodes = state.nodes.filter((n) => n.up);
+        if (upNodes.length <= 1) { toast('Cannot kill last node: RF requires quorum.'); break; }
+        const victim = upNodes[Math.floor(Math.random() * upNodes.length)];
+        try {
+          const res = await fetch(`/api/chaos/kill-node?nodeId=${victim.id}`, { method: 'POST' });
+          if (res.ok) {
+            toast(`Killed storage process ${victim.id}`, 'red');
+            await syncWithCluster();
+            break;
+          }
+        } catch {}
+        failNode(victim.id);
+        break;
+      }
+      case 'repair': {
+        try {
+          await fetch('/api/repair/now', { method: 'POST' });
+        } catch {}
+        repairTick(true);
+        toast('Cluster repair pass triggered');
+        await syncWithCluster();
+        break;
+      }
       case 'node': {
         const n = node(el.dataset.id);
         if (n.up) {
-          if (state.nodes.filter((x) => x.up).length <= 3) { toast('Keeping at least 3 nodes online so data can still be repaired.'); break; }
+          if (state.nodes.filter((x) => x.up).length <= 2) {
+            toast('Keeping at least 2 nodes online so data remains accessible.');
+            break;
+          }
+          try {
+            const res = await fetch(`/api/chaos/kill-node?nodeId=${n.id}`, { method: 'POST' });
+            if (res.ok) {
+              toast(`Stopped node ${n.id}`, 'red');
+              await syncWithCluster();
+              break;
+            }
+          } catch {}
           failNode(n.id);
-        } else recoverNode(n.id);
-        break;
-      }
-      case 'edit': if (f) openEdit(f.id); break;
-      case 'delete': if (f) { deleteFile(f, 'from the file list'); toast(`${f.name} was deleted`, 'red'); save(); render(); } break;
-      case 'restore': if (f) { restoreFile(f); toast(`${f.name} restored`, 'orange'); save(); render(); } break;
-      case 'purge': if (f) { purgeFile(f); save(); render(); } break;
-      case 'review': if (f) { f.status = 'ok'; save(); render(); } break;
-      case 'clearreviewed':
-        state.files.forEach((x) => { if (x.status === 'modified' || x.status === 'new') x.status = 'ok'; });
-        save(); render(); break;
-      case 'simchange': simulateChange(); break;
-      case 'simdelete': simulateDelete(); break;
-      case 'saveEditor': saveEdit(); break;
-      case 'closeEditor': $('#editor').close(); break;
-      case 'reset':
-        if (confirm('Reset the demo to its starting state?')) {
-          flash.clear(); seed(); save(); render(); toast('Demo reset');
+        } else {
+          try {
+            const res = await fetch(`/api/chaos/recover-node?nodeId=${n.id}`, { method: 'POST' });
+            if (res.ok) {
+              toast(`Restarted node ${n.id}`, 'teal');
+              await syncWithCluster();
+              break;
+            }
+          } catch {}
+          recoverNode(n.id);
         }
         break;
+      }
+      case 'delete': {
+        if (f) {
+          try {
+            await fetch(`/api/files/${f.id}`, { method: 'DELETE' });
+          } catch {}
+          deleteFile(f, 'from the file list');
+          toast(`${f.name} was deleted`, 'red');
+          await syncWithCluster();
+          save();
+          render();
+        }
+        break;
+      }
+      case 'restore': {
+        if (f) {
+          const fileId = f.id;
+          restoreFile(f);
+          toast(`${f.name} restored to healthy status`, 'teal');
+          save();
+          render();
+          try {
+            await fetch(`/api/files/${fileId}/restore`, { method: 'POST' });
+          } catch {}
+          await syncWithCluster();
+        }
+        break;
+      }
+      case 'purge': {
+        if (f) {
+          const fileId = f.id;
+          const fileName = f.name;
+          purgeFile(f);
+          save();
+          render();
+          toast(`${fileName} permanently removed forever`, 'red');
+          try {
+            const res = await fetch(`/api/files/${fileId}?purge=true`, { method: 'DELETE' });
+            if (!res.ok) {
+              await fetch(`/api/files/${fileId}/purge`, { method: 'POST' });
+            }
+          } catch {}
+          await syncWithCluster();
+        }
+        break;
+      }
+      case 'purge-all-deleted': {
+        const deletedFiles = state.files.filter((x) => x.status === 'deleted');
+        if (!deletedFiles.length) {
+          toast('Trash is already empty');
+          break;
+        }
+        if (confirm(`Permanently remove all ${deletedFiles.length} deleted file(s) forever from all cluster nodes?`)) {
+          const count = deletedFiles.length;
+          deletedFiles.forEach(df => purgeFile(df));
+          save();
+          render();
+          toast(`Permanently removed ${count} file(s) forever`, 'red');
+          try {
+            await fetch('/api/files/purge-deleted', { method: 'POST' });
+          } catch {}
+          await syncWithCluster();
+        }
+        break;
+      }
+      case 'review': {
+        if (f) {
+          f.status = 'ok';
+          save();
+          render();
+        }
+        break;
+      }
+      case 'clearreviewed': {
+        state.files.forEach((x) => {
+          if (x.status === 'modified' || x.status === 'new') x.status = 'ok';
+        });
+        save();
+        render();
+        break;
+      }
+      case 'reset': {
+        if (confirm('Reset the demo to its starting state?')) {
+          flash.clear();
+          seed();
+          save();
+          render();
+          toast('Demo reset');
+        }
+        break;
+      }
     }
   });
 

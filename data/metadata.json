@@ -1,0 +1,423 @@
+{
+  "files": [
+    {
+      "id": "file_91c1a85d2d2d",
+      "name": "3RD SEM NOV-DEC 2026.docx",
+      "size": 35913,
+      "chunks": [
+        "b40a900c9ccde4f2723ad96c7274c767c85525eb6a5c0921a2fb6b4284dfcd9c",
+        "7aadfc30a620bb6faa2de88420730c07feb43c39f5899c038ffce4a8dbd40fa0",
+        "616dabd5182700fa98a2a72810dee205f4a69ebb8998b6385736673de402c8db",
+        "4770b0c83467b252213bf9edc4ba768d5dfa8908dae427032e3305267a875ac8",
+        "c0168b63f724d9ce4ff2730b881d46a02f16a6354bcd43351dd51abfb0007882"
+      ],
+      "baselineChunks": [
+        "b40a900c9ccde4f2723ad96c7274c767c85525eb6a5c0921a2fb6b4284dfcd9c",
+        "7aadfc30a620bb6faa2de88420730c07feb43c39f5899c038ffce4a8dbd40fa0",
+        "616dabd5182700fa98a2a72810dee205f4a69ebb8998b6385736673de402c8db",
+        "4770b0c83467b252213bf9edc4ba768d5dfa8908dae427032e3305267a875ac8",
+        "c0168b63f724d9ce4ff2730b881d46a02f16a6354bcd43351dd51abfb0007882"
+      ],
+      "chunkDetails": [
+        {
+          "index": 1,
+          "hash": "b40a900c9ccde4f2723ad96c7274c767c85525eb6a5c0921a2fb6b4284dfcd9c",
+          "baselineHash": "b40a900c9ccde4f2723ad96c7274c767c85525eb6a5c0921a2fb6b4284dfcd9c",
+          "size": 8192,
+          "status": "reused",
+          "note": "Healed: Copied from healthy cluster replicas"
+        },
+        {
+          "index": 2,
+          "hash": "7aadfc30a620bb6faa2de88420730c07feb43c39f5899c038ffce4a8dbd40fa0",
+          "baselineHash": "7aadfc30a620bb6faa2de88420730c07feb43c39f5899c038ffce4a8dbd40fa0",
+          "size": 8192,
+          "status": "reused",
+          "note": "Healed: Copied from healthy cluster replicas"
+        },
+        {
+          "index": 3,
+          "hash": "616dabd5182700fa98a2a72810dee205f4a69ebb8998b6385736673de402c8db",
+          "baselineHash": "616dabd5182700fa98a2a72810dee205f4a69ebb8998b6385736673de402c8db",
+          "size": 8192,
+          "status": "reused",
+          "note": "Healed: Copied from healthy cluster replicas"
+        },
+        {
+          "index": 4,
+          "hash": "4770b0c83467b252213bf9edc4ba768d5dfa8908dae427032e3305267a875ac8",
+          "baselineHash": "4770b0c83467b252213bf9edc4ba768d5dfa8908dae427032e3305267a875ac8",
+          "size": 8192,
+          "status": "reused",
+          "note": "Healed: Copied from healthy cluster replicas"
+        },
+        {
+          "index": 5,
+          "hash": "c0168b63f724d9ce4ff2730b881d46a02f16a6354bcd43351dd51abfb0007882",
+          "baselineHash": "c0168b63f724d9ce4ff2730b881d46a02f16a6354bcd43351dd51abfb0007882",
+          "size": 3145,
+          "status": "reused",
+          "note": "Healed: Copied from healthy cluster replicas"
+        }
+      ],
+      "reusedCount": 5,
+      "affectedCount": 0,
+      "version": 3,
+      "status": "ok",
+      "updatedAt": 1791565524828
+    },
+    {
+      "id": "file_36a688cb5bdb",
+      "name": "automated-test-1791563240880.txt",
+      "size": 131116,
+      "chunks": [
+        "ee191ecf59b12a2aa56a891e530e91dc0fb4c398163f761d599138a5d2846e18"
+      ],
+      "version": 1,
+      "status": "ok",
+      "updatedAt": 1791563240931
+    },
+    {
+      "id": "file_9e1a2bb6f89d",
+      "name": "automated-test-1791562027044.txt",
+      "size": 131116,
+      "chunks": [
+        "ebe9dd6b0f133b986d97463000efbf2337d3a213b99636fb2be3f75789608e90"
+      ],
+      "version": 1,
+      "status": "ok",
+      "updatedAt": 1791562027093
+    },
+    {
+      "id": "file_a2e9247971b5",
+      "name": "project-report.pdf",
+      "size": 99,
+      "chunks": [
+        "d30c44e7dc8d83a1c2765f1aa6f58d2ce19a8413a5cbb65cfd342efe2a5ecb84"
+      ],
+      "version": 1,
+      "status": "ok",
+      "updatedAt": 1791562001042
+    },
+    {
+      "id": "file_47f8316dbd62",
+      "name": "financial-backup.csv",
+      "size": 88,
+      "chunks": [
+        "37831b7857b0cfe4ef5267b6f93167270746501f011bdbe2d2f9e60bd2c9e485"
+      ],
+      "version": 1,
+      "status": "ok",
+      "updatedAt": 1791562001122
+    },
+    {
+      "id": "file_af96bb4b77e1",
+      "name": "system-config.yaml",
+      "size": 97,
+      "chunks": [
+        "af30d1abca8e0a6cc964de1ab3afbbef2faebe6caac229e13b3758cbaa9a7061"
+      ],
+      "version": 1,
+      "status": "ok",
+      "updatedAt": 1791562001168
+    }
+  ],
+  "chunks": {
+    "d30c44e7dc8d83a1c2765f1aa6f58d2ce19a8413a5cbb65cfd342efe2a5ecb84": {
+      "hash": "d30c44e7dc8d83a1c2765f1aa6f58d2ce19a8413a5cbb65cfd342efe2a5ecb84",
+      "size": 99,
+      "replicas": [
+        {
+          "nodeId": "node-3",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-2",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "37831b7857b0cfe4ef5267b6f93167270746501f011bdbe2d2f9e60bd2c9e485": {
+      "hash": "37831b7857b0cfe4ef5267b6f93167270746501f011bdbe2d2f9e60bd2c9e485",
+      "size": 88,
+      "replicas": [
+        {
+          "nodeId": "node-4",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-2",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "af30d1abca8e0a6cc964de1ab3afbbef2faebe6caac229e13b3758cbaa9a7061": {
+      "hash": "af30d1abca8e0a6cc964de1ab3afbbef2faebe6caac229e13b3758cbaa9a7061",
+      "size": 97,
+      "replicas": [
+        {
+          "nodeId": "node-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-3",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-2",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "ebe9dd6b0f133b986d97463000efbf2337d3a213b99636fb2be3f75789608e90": {
+      "hash": "ebe9dd6b0f133b986d97463000efbf2337d3a213b99636fb2be3f75789608e90",
+      "size": 131116,
+      "replicas": [
+        {
+          "nodeId": "node-4",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-2",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "ee191ecf59b12a2aa56a891e530e91dc0fb4c398163f761d599138a5d2846e18": {
+      "hash": "ee191ecf59b12a2aa56a891e530e91dc0fb4c398163f761d599138a5d2846e18",
+      "size": 131116,
+      "replicas": [
+        {
+          "nodeId": "node-3",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-2",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "b40a900c9ccde4f2723ad96c7274c767c85525eb6a5c0921a2fb6b4284dfcd9c": {
+      "hash": "b40a900c9ccde4f2723ad96c7274c767c85525eb6a5c0921a2fb6b4284dfcd9c",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-4",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-1",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "7aadfc30a620bb6faa2de88420730c07feb43c39f5899c038ffce4a8dbd40fa0": {
+      "hash": "7aadfc30a620bb6faa2de88420730c07feb43c39f5899c038ffce4a8dbd40fa0",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "616dabd5182700fa98a2a72810dee205f4a69ebb8998b6385736673de402c8db": {
+      "hash": "616dabd5182700fa98a2a72810dee205f4a69ebb8998b6385736673de402c8db",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "node-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-4",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "4770b0c83467b252213bf9edc4ba768d5dfa8908dae427032e3305267a875ac8": {
+      "hash": "4770b0c83467b252213bf9edc4ba768d5dfa8908dae427032e3305267a875ac8",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "node-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-3",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "c0168b63f724d9ce4ff2730b881d46a02f16a6354bcd43351dd51abfb0007882": {
+      "hash": "c0168b63f724d9ce4ff2730b881d46a02f16a6354bcd43351dd51abfb0007882",
+      "size": 3118,
+      "replicas": [
+        {
+          "nodeId": "node-4",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-1",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "d32747fd9e1641cfb31b78cdb30a25b3a3e5d2436e2dca919336edd000ac8bc2": {
+      "hash": "d32747fd9e1641cfb31b78cdb30a25b3a3e5d2436e2dca919336edd000ac8bc2",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "node-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "b93c47de77bbb6b3b25ab845eae1f687582a23fa921c7171cc7e2ce4d884a5f2": {
+      "hash": "b93c47de77bbb6b3b25ab845eae1f687582a23fa921c7171cc7e2ce4d884a5f2",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "node-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-4",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "b6a90274e651d2fdd3f0b33a103a544a9c7a1d5535c46bf38ecfff1901df0dea": {
+      "hash": "b6a90274e651d2fdd3f0b33a103a544a9c7a1d5535c46bf38ecfff1901df0dea",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "node-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-3",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "11e87ed3ea30a2d0ec59dac15039d3a104d6e53cb8351d5b86c204a5fa27f84a": {
+      "hash": "11e87ed3ea30a2d0ec59dac15039d3a104d6e53cb8351d5b86c204a5fa27f84a",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "node-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-4",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "ddb51d0a313f6ac1f9f6fc1998e31761f00c996747237d91b972fe051f605f5a": {
+      "hash": "ddb51d0a313f6ac1f9f6fc1998e31761f00c996747237d91b972fe051f605f5a",
+      "size": 3145,
+      "replicas": [
+        {
+          "nodeId": "node-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-5",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "node-3",
+          "state": "GOOD"
+        }
+      ]
+    }
+  },
+  "metrics": {
+    "restores": 14,
+    "corruptionsCaught": 3,
+    "repairsCompleted": 47,
+    "integrityViolations": 0
+  }
+}
