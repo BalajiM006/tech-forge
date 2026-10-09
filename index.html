@@ -10,6 +10,76 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <section class="intro" id="intro" aria-label="Welcome to Mend">
+    <div class="intro-content">
+      <svg class="intro-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <path d="M20 3 35 11.5v17L20 37 5 28.5v-17z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+        <path d="M12.5 20.5 18 26l10-11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <p class="intro-name">Mend</p>
+      <p class="intro-caption">Your files, always in sync.</p>
+      <span class="intro-loader" aria-hidden="true"></span>
+    </div>
+  </section>
+
+  <main class="auth-screen" id="authScreen" hidden>
+    <div class="auth-card">
+      <a class="auth-brand" href="#" aria-label="Mend home">
+        <svg class="auth-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M20 3 35 11.5v17L20 37 5 28.5v-17z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M12.5 20.5 18 26l10-11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Mend</span>
+      </a>
+      <p class="auth-eyebrow">SELF-REPAIRING FILE STORE</p>
+
+      <form class="auth-form" id="signinForm">
+        <h1>Welcome back</h1>
+        <p class="auth-copy">Sign in to continue to your workspace.</p>
+        <label for="signinUsername">Username</label>
+        <input id="signinUsername" name="username" autocomplete="username" required />
+        <label for="signinPassword">Password</label>
+        <input id="signinPassword" name="password" type="password" autocomplete="current-password" required />
+        <div class="auth-links"><button class="text-button" type="button" data-auth-view="forgot">Forgot password?</button></div>
+        <button class="auth-submit" type="submit">Sign in</button>
+        <p class="auth-switch">New to Mend? <button class="text-button" type="button" data-auth-view="signup">Create an account</button></p>
+      </form>
+
+      <form class="auth-form" id="signupForm" hidden>
+        <h1>Create your account</h1>
+        <p class="auth-copy">Get started with your Mend workspace.</p>
+        <label for="signupUsername">Username</label>
+        <input id="signupUsername" name="username" autocomplete="username" minlength="3" maxlength="32" required />
+        <label for="signupEmail">Email address</label>
+        <input id="signupEmail" name="email" type="email" autocomplete="email" required />
+        <label for="signupPassword">Password</label>
+        <input id="signupPassword" name="password" type="password" autocomplete="new-password" minlength="8" required />
+        <label for="signupConfirm">Confirm password</label>
+        <input id="signupConfirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required />
+        <button class="auth-submit" type="submit">Create account</button>
+        <p class="auth-switch">Already have an account? <button class="text-button" type="button" data-auth-view="signin">Sign in</button></p>
+      </form>
+
+      <form class="auth-form" id="forgotForm" hidden>
+        <h1>Reset your password</h1>
+        <p class="auth-copy">Verify your username and email, then choose a new password.</p>
+        <label for="resetUsername">Username</label>
+        <input id="resetUsername" name="username" autocomplete="username" required />
+        <label for="resetEmail">Email address</label>
+        <input id="resetEmail" name="email" type="email" autocomplete="email" required />
+        <label for="resetPassword">New password</label>
+        <input id="resetPassword" name="password" type="password" autocomplete="new-password" minlength="8" required />
+        <label for="resetConfirm">Confirm new password</label>
+        <input id="resetConfirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required />
+        <button class="auth-submit" type="submit">Update password</button>
+        <p class="auth-switch"><button class="text-button" type="button" data-auth-view="signin">Back to sign in</button></p>
+      </form>
+      <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
+      <p class="auth-note">Demo access is stored in this browser only. Do not use a real or reused password.</p>
+    </div>
+  </main>
+
+  <div id="appShell" hidden>
 
   <!-- Top band: brand, heartbeat, cluster vitals -->
   <header class="band">
@@ -28,6 +98,7 @@
         <span class="pulse" id="pulse"></span>
         <span id="hbText">Starting health checks…</span>
       </div>
+      <div class="account-menu"><span id="accountName"></span><button class="account-signout" id="signoutButton" type="button">Sign out</button></div>
     </div>
     <div class="wrap">
       <dl class="vitals" id="vitals"></dl>
@@ -117,6 +188,7 @@
   <input type="file" id="fileInput" multiple hidden />
   <div class="dropveil" id="dropveil"><div>Drop files here to store them</div></div>
   <div class="toasts" id="toasts" aria-live="polite"></div>
+  </div>
 
   <script src="script.js"></script>
 </body>

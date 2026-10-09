@@ -293,3 +293,66 @@ dialog::backdrop { background: rgba(16, 38, 43, .55); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- Intro & browser-local demo authentication ---------- */
+[hidden] { display: none !important; }
+.intro {
+  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
+  background: var(--ink); color: #eaf3f1;
+  animation: intro-exit .55s ease 1.55s forwards;
+}
+.intro-content { display: grid; justify-items: center; animation: intro-arrive .7s ease both; }
+.intro-mark { width: 82px; height: 82px; color: #5fd3c9; animation: mark-pop .75s cubic-bezier(.2,.8,.2,1) both; }
+.intro-name { margin-top: 18px; font: 800 48px/1 var(--font-display); letter-spacing: -.04em; }
+.intro-caption { margin-top: 10px; color: #a9c4c0; font-size: 15px; }
+.intro-loader { width: 58px; height: 3px; margin-top: 30px; overflow: hidden; border-radius: 10px; background: #29434a; }
+.intro-loader::after { content: ""; display: block; width: 40%; height: 100%; border-radius: inherit; background: #5fd3c9; animation: loader-run .8s ease-in-out infinite alternate; }
+@keyframes intro-arrive { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mark-pop { from { opacity: 0; transform: scale(.55) rotate(-14deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes loader-run { to { transform: translateX(150%); } }
+@keyframes intro-exit { to { opacity: 0; visibility: hidden; } }
+
+.auth-screen {
+  min-height: 100vh; padding: 32px 18px; display: grid; place-items: center;
+  background: radial-gradient(ellipse at 18% 15%, rgba(95,211,201,.16), transparent 34%), var(--paper);
+}
+.auth-card {
+  width: min(100%, 460px); padding: 38px 42px 30px; border: 1px solid var(--line);
+  border-radius: 22px; background: var(--panel); box-shadow: 0 24px 70px rgba(16,38,43,.12);
+  animation: auth-arrive .45s ease both;
+}
+@keyframes auth-arrive { from { opacity: 0; transform: translateY(12px); } }
+.auth-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font: 800 28px/1 var(--font-display); }
+.auth-mark { width: 38px; height: 38px; color: var(--teal); }
+.auth-eyebrow { margin-top: 18px; color: var(--muted); font: 500 11px var(--font-mono); letter-spacing: .13em; }
+.auth-form { margin-top: 26px; }
+.auth-form h1 { font: 800 30px/1.12 var(--font-display); letter-spacing: -.025em; }
+.auth-copy { margin: 8px 0 23px; color: var(--muted); font-size: 14px; }
+.auth-form label { display: block; margin: 14px 0 6px; font-size: 13px; font-weight: 600; }
+.auth-form input {
+  display: block; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 9px; background: #fff;
+}
+.auth-form input:focus { border-color: var(--teal); outline: 3px solid rgba(15,139,132,.14); }
+.auth-links { display: flex; justify-content: flex-end; margin: 8px 0 18px; }
+.text-button { padding: 0; border: 0; background: none; color: #08746e; cursor: pointer; font-weight: 600; }
+.text-button:hover { text-decoration: underline; }
+.auth-submit { width: 100%; min-height: 46px; border: 0; border-radius: 9px; background: var(--teal); color: #fff; cursor: pointer; font-weight: 600; }
+.auth-submit:hover { background: #0b756f; }
+.auth-switch { margin-top: 18px; text-align: center; color: var(--muted); font-size: 14px; }
+.auth-switch .text-button { margin-left: 3px; }
+.auth-message { min-height: 21px; margin-top: 14px; color: var(--red-ink); text-align: center; font-size: 13px; }
+.auth-message.success { color: #08746e; }
+.auth-note { margin-top: 4px; color: var(--muted); text-align: center; font-size: 11px; line-height: 1.5; }
+.account-menu { display: flex; align-items: center; gap: 12px; color: #b9d0cd; font-size: 13px; }
+.account-signout { border: 1px solid #456067; border-radius: 8px; padding: 6px 10px; background: transparent; color: #eaf3f1; cursor: pointer; }
+.account-signout:hover { background: #1b3a41; }
+@media (max-width: 640px) {
+  .auth-card { padding: 30px 24px 24px; }
+  .intro-name { font-size: 42px; }
+  .account-menu { width: 100%; justify-content: space-between; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro { animation-duration: .01ms; animation-delay: .05s; }
+  .intro-loader::after { animation: none; }
+}

@@ -1,6 +1,157 @@
 (function () {
   'use strict';
 
+  const AUTH_KEY = 'mend-demo-accounts-v1';
+  const SESSION_KEY = 'mend-demo-session-v1';
+  const intro = document.querySelector('#intro');
+  const authScreen = document.querySelector('#authScreen');
+  const appShell = document.querySelector('#appShell');
+  const authMessage = document.querySelector('#authMessage');
+  const authForms = {
+    signin: document.querySelector('#signinForm'),
+    signup: document.querySelector('#signupForm'),
+    forgot: document.querySelector('#forgotForm')
+  };
+  let appIntervals = [];
+
+  function showAuthMessage(message, success) {
+    authMessage.textContent = message;
+    authMessage.classList.toggle('success', Boolean(success));
+  }
+
+  function showAuthView(view) {
+    Object.entries(authForms).forEach(([name, form]) => { form.hidden = name !== view; });
+    Object.values(authForms).forEach((form) => {
+      form.querySelectorAll('input[type="password"]').forEach((input) => { input.value = ''; });
+    });
+    showAuthMessage('');
+    const firstInput = authForms[view].querySelector('input');
+    if (firstInput) firstInput.focus();
+  }
+
+  function getAccounts() {
+    const value = localStorage.getItem(AUTH_KEY);
+    return value ? JSON.parse(value) : [];
+  }
+
+  function makeSalt() {
+    const salt = new Uint8Array(16);
+    crypto.getRandomValues(salt);
+    return Array.from(salt, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function hashPassword(password, salt) {
+    if (!crypto.subtle) throw new Error('Secure password hashing is unavailable in this browser. Open this page through localhost or HTTPS.');
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({
+      name: 'PBKDF2', salt: Uint8Array.from(salt.match(/.{2}/g), (byte) => parseInt(byte, 16)),
+      iterations: 120000, hash: 'SHA-256'
+    }, key, 256);
+    return Array.from(new Uint8Array(bits), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  function startApp() {
+    const username = sessionStorage.getItem(SESSION_KEY);
+    if (!username) return;
+    authScreen.hidden = true;
+    appShell.hidden = false;
+    intro.hidden = true;
+    $('#accountName').textContent = username;
+    load();
+    if (tAuto) tAuto.checked = state.settings.auto;
+    if (tChaos) tChaos.checked = state.settings.chaos;
+    render();
+    renderHeartbeat();
+    appIntervals.push(setInterval(() => {
+      if (state.settings.auto) {
+        repairTick(false);
+        renderHeartbeat();
+      } else {
+        render();
+      }
+    }, TICK));
+    appIntervals.push(setInterval(() => { if (state.settings.chaos) chaosEvent(); }, 5000));
+  }
+
+  Object.entries(authForms).forEach(([name, form]) => {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      showAuthMessage('');
+      try {
+        const data = new FormData(form);
+        const username = String(data.get('username')).trim();
+        const password = String(data.get('password'));
+        const accounts = getAccounts();
+
+        if (name === 'signup') {
+          const email = String(data.get('email')).trim().toLowerCase();
+          if (password !== data.get('confirmPassword')) throw new Error('The passwords do not match.');
+          if (accounts.some((account) => account.username.toLowerCase() === username.toLowerCase())) {
+            throw new Error('That username is already registered.');
+          }
+          if (accounts.some((account) => account.email.toLowerCase() === email)) {
+            throw new Error('An account with that email already exists.');
+          }
+          const salt = makeSalt();
+          accounts.push({ username, email, salt, passwordHash: await hashPassword(password, salt) });
+          localStorage.setItem(AUTH_KEY, JSON.stringify(accounts));
+          showAuthView('signin');
+          document.querySelector('#signinUsername').value = username;
+          showAuthMessage('Account created. Sign in with your new credentials.', true);
+          return;
+        }
+
+        if (name === 'forgot') {
+          const email = String(data.get('email')).trim().toLowerCase();
+          const account = accounts.find((entry) => entry.username.toLowerCase() === username.toLowerCase() && entry.email.toLowerCase() === email);
+          if (!account) throw new Error('The username and email do not match an account.');
+          if (password !== data.get('confirmPassword')) throw new Error('The passwords do not match.');
+          account.salt = makeSalt();
+          account.passwordHash = await hashPassword(password, account.salt);
+          localStorage.setItem(AUTH_KEY, JSON.stringify(accounts));
+          showAuthView('signin');
+          document.querySelector('#signinUsername').value = username;
+          showAuthMessage('Password updated. You can now sign in.', true);
+          return;
+        }
+
+        const account = accounts.find((entry) => entry.username.toLowerCase() === username.toLowerCase());
+        if (!account || account.passwordHash !== await hashPassword(password, account.salt)) {
+          throw new Error('Incorrect username or password.');
+        }
+        sessionStorage.setItem(SESSION_KEY, account.username);
+        showAuthMessage('');
+        startApp();
+      } catch (error) {
+        showAuthMessage(error instanceof Error ? error.message : 'Something went wrong. Please try again.');
+      }
+    });
+  });
+
+  document.addEventListener('click', (event) => {
+    const viewButton = event.target.closest('[data-auth-view]');
+    if (viewButton) showAuthView(viewButton.dataset.authView);
+  });
+
+  document.querySelector('#signoutButton').addEventListener('click', () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    appIntervals.forEach(clearInterval);
+    appIntervals = [];
+    appShell.hidden = true;
+    authScreen.hidden = false;
+    showAuthView('signin');
+  });
+
+  setTimeout(() => {
+    if (sessionStorage.getItem(SESSION_KEY)) {
+      startApp();
+    } else {
+      intro.hidden = true;
+      authScreen.hidden = false;
+      showAuthView('signin');
+    }
+  }, 2050);
+
   /* ------------------------------------------------------------------
      Mend: self-repairing replicated file store (front-end simulation)
      - Every file lives on RF nodes, placed zone-aware
@@ -710,20 +861,4 @@
 
   /* ---------- start ---------- */
 
-  load();
-  if (tAuto) tAuto.checked = state.settings.auto;
-  if (tChaos) tChaos.checked = state.settings.chaos;
-  render();
-  renderHeartbeat();
-
-  setInterval(() => {
-    if (state.settings.auto) {
-      repairTick(false);
-      renderHeartbeat();
-    } else {
-      render();
-    }
-  }, TICK);
-
-  setInterval(() => { if (state.settings.chaos) chaosEvent(); }, 5000);
 })();
