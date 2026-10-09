@@ -87,48 +87,36 @@ button, input, textarea { font: inherit; color: inherit; }
 .vital.v-orange dd { color: #ffab5c; }
 .vital.v-red dd { color: #ff7b8b; }
 
-/* ---------- View Switcher ---------- */
-.view-switch-box {
+/* ---------- Workspace Header & Health Display ---------- */
+.title-with-health {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.workspace-health {
   display: inline-flex;
-  background: var(--ink-2);
-  border: 1px solid #32535b;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 5px 13px;
   border-radius: 999px;
-  padding: 3px;
-  gap: 2px;
-}
-.view-switch-btn {
-  border: 0;
-  background: transparent;
-  color: #9fb7b4;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.view-switch-btn:hover { color: #fff; }
-.view-switch-btn.active {
-  background: var(--teal);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(15,139,132,.35);
+  font: 500 12px/1 var(--font-mono);
+  color: #3b6b66;
 }
 
-/* Workspace View (End-User Mode): Hides internal plumbing */
-body.mode-workspace .vitals-row { display: none !important; }
-body.mode-workspace .admin-only { display: none !important; }
-body.mode-workspace .cluster { display: none !important; }
-body.mode-workspace .grid { grid-template-columns: 1fr; }
-body.mode-workspace .activity { display: none !important; }
-body.mode-workspace .heartbeat { display: none !important; }
+.pulse.sm {
+  width: 8px;
+  height: 8px;
+}
 
-/* Admin View (Judges Mode) */
-body.mode-admin .vitals-row { display: block; }
-body.mode-admin section.admin-only,
-body.mode-admin aside.admin-only { display: block !important; }
-body.mode-admin th.admin-only,
-body.mode-admin td.admin-only { display: table-cell !important; }
-body.mode-admin button.admin-only { display: inline-flex !important; }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
 
 /* ---------- Storage Nodes Cluster View (Judges Telemetry) ---------- */
 .cluster {

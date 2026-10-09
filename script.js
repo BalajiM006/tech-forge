@@ -63,14 +63,8 @@
   seedDefaultAccount();
 
   function setViewMode(mode) {
-    const isAdm = mode === 'admin';
-    document.body.classList.toggle('mode-admin', isAdm);
-    document.body.classList.toggle('mode-workspace', !isAdm);
-    const bAdm = document.querySelector('#btnModeAdmin');
-    const bWs = document.querySelector('#btnModeWorkspace');
-    if (bAdm) bAdm.classList.toggle('active', isAdm);
-    if (bWs) bWs.classList.toggle('active', !isAdm);
-    localStorage.setItem('mend-view-mode', mode);
+    document.body.classList.add('mode-workspace');
+    document.body.classList.remove('mode-admin');
   }
 
   function startApp() {
@@ -80,10 +74,8 @@
     appShell.hidden = false;
     intro.hidden = true;
     $('#accountName').textContent = username;
-    setViewMode(localStorage.getItem('mend-view-mode') || 'workspace');
+    setViewMode('workspace');
     load();
-    if (tAuto) tAuto.checked = state.settings.auto;
-    if (tChaos) tChaos.checked = state.settings.chaos;
     render();
     renderHeartbeat();
     syncWithCluster();
@@ -413,8 +405,9 @@
   /* ---------- health ---------- */
 
   function fileHealth(f) {
-    const h = f.replicas.filter(isHealthy).length;
-    const inflight = f.replicas.filter((r) => r.state === 'repairing' && node(r.node).up).length;
+    const liveHealthy = (f.replicas || []).filter(isHealthy).length;
+    const h = Math.min(RF, liveHealthy);
+    const inflight = (f.replicas || []).filter((r) => r.state === 'repairing' && node(r.node).up).length;
     let label = 'healthy';
     if (h === 0 && inflight === 0) label = 'lost';
     else if (h >= RF) label = 'healthy';
@@ -572,19 +565,37 @@
 
       if (Array.isArray(data.files)) {
         state.files = data.files.map((f) => {
-          const reps = [];
+          // Aggregate distinct storage node replicas for this file (capped at RF=3 copies)
+          const nodeMap = new Map();
           if (Array.isArray(f.chunks) && data.chunks) {
             f.chunks.forEach((chunkHash) => {
               const chMeta = data.chunks[chunkHash];
               if (chMeta && Array.isArray(chMeta.replicas)) {
                 chMeta.replicas.forEach((r) => {
-                  reps.push({
-                    node: r.nodeId,
-                    state: r.state === 'GOOD' ? 'healthy' : (r.state === 'CORRUPT' ? 'corrupt' : 'repairing'),
-                    hash: chunkHash
-                  });
+                  if (!nodeMap.has(r.nodeId)) {
+                    nodeMap.set(r.nodeId, { good: 0, bad: 0, repairing: 0, total: 0 });
+                  }
+                  const st = nodeMap.get(r.nodeId);
+                  st.total++;
+                  if (r.state === 'GOOD') st.good++;
+                  else if (r.state === 'CORRUPT') st.bad++;
+                  else st.repairing++;
                 });
               }
+            });
+          }
+
+          const reps = [];
+          if (nodeMap.size > 0) {
+            Array.from(nodeMap.entries()).slice(0, RF).forEach(([nodeId, info]) => {
+              let state = 'healthy';
+              if (info.bad > 0) state = 'corrupt';
+              else if (info.repairing > 0 || info.good < info.total) state = 'repairing';
+              reps.push({
+                node: nodeId,
+                state,
+                hash: (f.chunks && f.chunks[0]) || uid()
+              });
             });
           }
           return {
@@ -763,14 +774,10 @@
 
   function statusCell(f) {
     const hl = fileHealth(f);
-    const copies = `${hl.h}/${RF} healthy copies`;
+    const copies = `${Math.min(RF, hl.h)}/${RF} healthy copies`;
     if (f.status === 'deleted') return `<span class="badge deleted">Deleted</span><span class="subtle">${ago(f.deletedAt)}</span>`;
     if (f.status === 'modified') {
-      const affected = f.affectedCount || 1;
-      const total = (f.chunks && f.chunks.length) ? f.chunks.length : (affected + (f.reusedCount || 0));
-      const reused = Math.max(0, total - affected);
-      const note = total > 1 ? `${affected} affected · ${reused} copied from cluster` : copies;
-      return `<span class="badge modified">Modified</span><span class="subtle">${note}</span>`;
+      return `<span class="badge modified">Modified</span><span class="subtle">${copies}</span>`;
     }
     if (f.status === 'new') return `<span class="badge new">New</span><span class="subtle">${copies}</span>`;
     const text = { healthy: 'Healthy', repairing: 'Repairing', degraded: 'Degraded', lost: 'Data lost' }[hl.label];
@@ -860,26 +867,18 @@
   function renderRows() {
     const rows = state.files.filter(matches).sort((a, b) => b.updatedAt - a.updatedAt);
     if (!rows.length) {
-      $('#rows').innerHTML = '<tr class="empty-row"><td colspan="8">No files here. Upload a file or drop one onto this page.</td></tr>';
+      $('#rows').innerHTML = '<tr class="empty-row"><td colspan="6">No files here. Upload a file or drop one onto this page.</td></tr>';
       return;
     }
     $('#rows').innerHTML = rows.map((f) => {
       const fl = flash.has(f.id) ? ' flash' : '';
       flash.delete(f.id);
       const ext = f.name.includes('.') ? f.name.split('.').pop().toUpperCase() : 'FILE';
-      const chips = (f.replicas || []).map((r) => {
-        const nd = node(r.node);
-        const isUp = nd ? nd.up : true;
-        const st = f.status === 'deleted' ? 'tomb' : (isUp ? r.state : 'offline');
-        return `<span class="rchip ${st}" title="${r.node}: ${f.status === 'deleted' ? 'marked for removal' : (STATE_LABEL[r.state] || r.state)}">${r.node}</span>`;
-      }).join('');
       return `
         <tr class="row-${f.status}${fl}">
           <td><span class="fname">${esc(f.name)}</span><span class="fmeta">${ext}</span></td>
-          <td class="admin-only"><div class="rchips">${chips}</div></td>
           <td class="mono">v${f.version}</td>
           <td class="muted">${fmtSize(f.size)}</td>
-          <td class="mono muted admin-only">${f.hash ? f.hash.slice(0, 8) : '--------'}</td>
           <td class="muted">${ago(f.updatedAt)}</td>
           <td>${statusCell(f)}</td>
           <td class="right"><div class="actions">${actionsCell(f)}</div></td>
@@ -887,33 +886,40 @@
     }).join('');
   }
 
-  function renderLog() {
-    $('#log').innerHTML = state.log.map((e) =>
-      `<li class="k-${e.kind}"><span class="dot"></span><div><time>${clock(e.t)}</time>${e.msg}</div></li>`
-    ).join('');
-  }
-
   function renderHeartbeat() {
     const hb = $('#hbText');
     const pulse = $('#pulse');
+    const wsHb = $('#wsHbText');
+    const wsPulse = $('#wsPulse');
+    const timeStr = clock(lastCheck);
+
     if (state.settings.auto) {
-      hb.textContent = `Last health check ${clock(lastCheck)}`;
-      pulse.classList.remove('paused');
-      pulse.classList.remove('beat');
-      void pulse.offsetWidth;
-      pulse.classList.add('beat');
+      const text = `Last health check ${timeStr}`;
+      if (hb) hb.textContent = text;
+      if (wsHb) wsHb.textContent = text;
+      if (pulse) {
+        pulse.classList.remove('paused', 'beat');
+        void pulse.offsetWidth;
+        pulse.classList.add('beat');
+      }
+      if (wsPulse) {
+        wsPulse.classList.remove('paused', 'beat');
+        void wsPulse.offsetWidth;
+        wsPulse.classList.add('beat');
+      }
     } else {
-      hb.textContent = 'Auto-repair paused. Damage will not be fixed until you run repair.';
-      pulse.classList.add('paused');
+      const pausedText = 'Auto-repair paused';
+      if (hb) hb.textContent = pausedText;
+      if (wsHb) wsHb.textContent = pausedText;
+      if (pulse) pulse.classList.add('paused');
+      if (wsPulse) wsPulse.classList.add('paused');
     }
   }
 
   function render() {
-    renderVitals();
-    renderNodes();
     renderFilters();
     renderRows();
-    renderLog();
+    renderHeartbeat();
   }
 
   /* ---------- events ---------- */

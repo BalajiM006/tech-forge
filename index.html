@@ -80,62 +80,29 @@
       </div>
       <div class="heartbeat" aria-live="polite">
         <span class="pulse" id="pulse"></span>
-        <span id="hbText">Starting health checks…</span>
-      </div>
-      <div class="view-switch-box" id="viewSwitcher" role="radiogroup" aria-label="View mode">
-        <button class="view-switch-btn active" id="btnModeWorkspace" type="button" data-mode="workspace">Workspace</button>
-        <button class="view-switch-btn" id="btnModeAdmin" type="button" data-mode="admin">Cluster Telemetry (Judges)</button>
+        <span id="hbText">Starting health checks...</span>
       </div>
       <div class="account-menu"><span id="accountName"></span><button class="account-signout" id="signoutButton" type="button">Sign out</button></div>
-    </div>
-    <div class="wrap vitals-row">
-      <dl class="vitals" id="vitals"></dl>
     </div>
   </header>
 
   <div class="wrap page">
-
-    <!-- Cluster Telemetry (Judges Mode) -->
-    <section class="cluster admin-only" id="clusterSection" aria-labelledby="clusterTitle">
-      <div class="section-head">
-        <div>
-          <h2 id="clusterTitle">Storage Nodes Telemetry</h2>
-          <p class="hint">5 independent processes across 3 failure domains (RF=3). Live chunk placement &amp; hash integrity.</p>
-        </div>
-        <div class="controls">
-          <label class="switch"><input type="checkbox" id="tAuto" checked /><span class="track"></span>Auto-repair</label>
-          <label class="switch"><input type="checkbox" id="tChaos" /><span class="track"></span>Chaos mode</label>
-          <button class="btn admin-only" data-act="corrupt-replica">Corrupt replica</button>
-          <button class="btn admin-only" data-act="kill-node">Kill node</button>
-          <button class="btn primary admin-only" data-act="repair">Run repair now</button>
-        </div>
-      </div>
-
-      <div class="nodes" id="nodes"></div>
-
-      <ul class="legend" aria-label="Replica colours">
-        <li><i class="cell healthy"></i>Healthy</li>
-        <li><i class="cell repairing"></i>Syncing</li>
-        <li><i class="cell corrupt"></i>Corrupt</li>
-        <li><i class="cell offline"></i>Node offline</li>
-        <li><i class="cell healthy f-modified"></i>Modified version</li>
-        <li><i class="cell deleted"></i>Marked deleted</li>
-      </ul>
-    </section>
-
     <div class="grid">
       <!-- Files -->
       <section class="panel files" aria-labelledby="filesTitle">
         <div class="section-head">
           <div>
-            <h2 id="filesTitle">Files</h2>
+            <div class="title-with-health">
+              <h2 id="filesTitle">Files</h2>
+              <div class="workspace-health" id="workspaceHealth" title="Auto-repair and cluster integrity verification">
+                <span class="pulse sm" id="wsPulse"></span>
+                <span id="wsHbText">Last health check just now</span>
+              </div>
+            </div>
             <p class="hint">Changed files show in <b class="tag-orange">orange</b>. Deleted files show in <b class="tag-red">red</b>.</p>
           </div>
           <div class="controls">
             <button class="btn primary" data-act="upload">Upload files</button>
-            <button class="btn admin-only" data-act="repair">Run repair now</button>
-            <button class="btn admin-only" data-act="corrupt-replica">Corrupt replica</button>
-            <button class="btn admin-only" data-act="kill-node">Kill node</button>
           </div>
         </div>
 
@@ -153,10 +120,8 @@
             <thead>
               <tr>
                 <th>File</th>
-                <th class="admin-only">Replicas</th>
                 <th>Version</th>
                 <th>Size</th>
-                <th class="admin-only">Checksum</th>
                 <th>Changed</th>
                 <th>Status</th>
                 <th class="right">Actions</th>
@@ -166,15 +131,6 @@
           </table>
         </div>
       </section>
-
-      <!-- Activity -->
-      <aside class="panel activity admin-only" aria-labelledby="logTitle">
-        <div class="section-head">
-          <h2 id="logTitle">Activity</h2>
-          <button class="btn small ghost" data-act="reset">Reset demo</button>
-        </div>
-        <ol class="log" id="log"></ol>
-      </aside>
     </div>
   </div>
 
