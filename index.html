@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mend · Self-repairing replicated file store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Top band: brand, heartbeat, cluster vitals -->
+  <header class="band">
+    <div class="wrap band-inner">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M20 3 35 11.5v17L20 37 5 28.5v-17z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M12.5 20.5 18 26l10-11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div>
+          <h1>Mend</h1>
+          <p>Self-repairing replicated file store</p>
+        </div>
+      </div>
+      <div class="heartbeat" aria-live="polite">
+        <span class="pulse" id="pulse"></span>
+        <span id="hbText">Starting health checks…</span>
+      </div>
+    </div>
+    <div class="wrap">
+      <dl class="vitals" id="vitals"></dl>
+    </div>
+  </header>
+
+  <div class="wrap page">
+
+    <div class="grid">
+      <!-- Files -->
+      <section class="panel files" aria-labelledby="filesTitle">
+        <div class="section-head">
+          <div>
+            <h2 id="filesTitle">Files</h2>
+            <p class="hint">Changed files show in <b class="tag-orange">orange</b>. Deleted files show in <b class="tag-red">red</b>.</p>
+          </div>
+          <div class="controls">
+            <button class="btn primary" data-act="repair">Run repair now</button>
+            <button class="btn primary" data-act="upload">Upload files</button>
+            <button class="btn" data-act="simchange">Simulate edit</button>
+            <button class="btn" data-act="simdelete">Simulate delete</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="filters" id="filters" role="tablist" aria-label="Filter files"></div>
+          <div class="toolbar-right">
+            <button class="btn small ghost" data-act="clearreviewed">Mark all reviewed</button>
+            <input class="search" id="search" type="search" placeholder="Search files" aria-label="Search files" />
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Replicas</th>
+                <th>Version</th>
+                <th>Size</th>
+                <th>Checksum</th>
+                <th>Changed</th>
+                <th>Status</th>
+                <th class="right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Activity -->
+      <aside class="panel activity" aria-labelledby="logTitle">
+        <div class="section-head">
+          <h2 id="logTitle">Activity</h2>
+          <button class="btn small ghost" data-act="reset">Reset demo</button>
+        </div>
+        <ol class="log" id="log"></ol>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Editor dialog -->
+  <dialog id="editor" aria-labelledby="edTitle">
+    <form method="dialog" id="edForm" class="ed">
+      <div class="ed-head">
+        <h3 id="edTitle">Edit file</h3>
+        <button type="button" class="btn small ghost" data-act="closeEditor" aria-label="Close editor">Close</button>
+      </div>
+      <textarea id="edText" spellcheck="false" aria-label="File content"></textarea>
+      <div class="ed-side">
+        <h4>Replicas</h4>
+        <div id="edReplicas" class="ed-replicas"></div>
+        <h4>Version history</h4>
+        <ul id="edHistory" class="ed-history"></ul>
+      </div>
+      <div class="ed-foot">
+        <span class="hint" id="edHint"></span>
+        <div>
+          <button type="button" class="btn" data-act="closeEditor">Cancel</button>
+          <button type="button" class="btn primary" data-act="saveEditor">Save changes</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <input type="file" id="fileInput" multiple hidden />
+  <div class="dropveil" id="dropveil"><div>Drop files here to store them</div></div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
