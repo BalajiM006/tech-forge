@@ -4,6 +4,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const os = require('node:os');
 const { spawn } = require('node:child_process');
 
 const PORT = 5000;
@@ -355,7 +356,13 @@ async function processRepairQueue() {
 // Coordinator HTTP API Server & Static Dashboard
 // -------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  let url;
+  try {
+    url = new URL(req.url, `http://${req.headers.host || 'localhost:5000'}`);
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ error: 'Invalid URL' }));
+  }
   const pathname = url.pathname;
 
   // CORS
@@ -943,11 +950,28 @@ setInterval(runHeartbeats, 1200);
 // Periodic Scrubber & Repair Loop (Every 2.5s)
 setInterval(scrubCluster, 2500);
 
-server.listen(PORT, () => {
+function getLocalIps() {
+  const interfaces = os.networkInterfaces();
+  const ips = [];
+  for (const name of Object.keys(interfaces)) {
+    for (const net of interfaces[name] || []) {
+      if (net.family === 'IPv4' && !net.internal) {
+        ips.push(net.address);
+      }
+    }
+  }
+  return ips;
+}
+
+server.listen(PORT, '0.0.0.0', () => {
+  const ips = getLocalIps();
   console.log(`====================================================`);
   console.log(` MEND COORDINATOR & OBJECT STORE ACTIVE`);
-  console.log(` Web Dashboard: http://localhost:${PORT}`);
-  console.log(` Storage Nodes: 5 Processes on ports 5001 - 5005`);
+  console.log(` Local Dashboard:  http://localhost:${PORT}`);
+  if (ips.length) {
+    ips.forEach(ip => console.log(` Network Link:      http://${ip}:${PORT}`));
+  }
+  console.log(` Storage Nodes:    5 Processes on ports 5001 - 5005`);
   console.log(` Replication Factor: RF=${RF} (Safe writes + Auto-healing)`);
   console.log(`====================================================`);
 });
