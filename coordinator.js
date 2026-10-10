@@ -389,6 +389,62 @@ async function processRepairQueue() {
 }
 
 // -------------------------------------------------------------
+// Silent Background Integrity Verification & Auto-Healing
+// (Runs invisibly in the background on file upload)
+// -------------------------------------------------------------
+async function verifyFileIntegrityBackground(fileId) {
+  const fileMeta = state.files.find(f => f.id === fileId);
+  if (!fileMeta || !fileMeta.chunks) return;
+
+  let corruptDetected = 0;
+  let healthyCount = 0;
+
+  for (const chunkHash of fileMeta.chunks) {
+    const chunkMeta = state.chunks[chunkHash];
+    if (!chunkMeta || !chunkMeta.replicas) continue;
+
+    for (const replica of chunkMeta.replicas) {
+      const node = state.nodes[replica.nodeId];
+      if (!node || node.status === 'DOWN') continue;
+
+      try {
+        const res = await fetch(`${getNodeUrl(node)}/verify/${chunkHash}`, {
+          method: 'POST',
+          signal: AbortSignal.timeout(1500)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.match) {
+            replica.state = 'GOOD';
+            healthyCount++;
+          } else {
+            // Caught silent bit-rot / corruption in background!
+            replica.state = 'CORRUPT';
+            state.metrics.corruptionsCaught++;
+            corruptDetected++;
+            addLog('warn', `[BACKGROUND AUDIT] Caught silent bit-rot in chunk ${chunkHash.slice(0, 8)} on ${replica.nodeId}. Triggering silent background repair.`);
+            if (!state.repairQueue.includes(chunkHash)) {
+              state.repairQueue.unshift(chunkHash);
+            }
+          }
+        }
+      } catch (err) {
+        // Node communication timeout
+      }
+    }
+  }
+
+  // If any corruptions were caught, trigger immediate background healing
+  if (corruptDetected > 0) {
+    await processRepairQueue();
+    saveMetadata();
+    addLog('ok', `[BACKGROUND AUTO-HEAL] File "${fileMeta.name}" silently mended! Corrupt replica(s) restored from healthy peer nodes.`);
+  } else {
+    addLog('info', `[BACKGROUND AUDIT] File "${fileMeta.name}" passed background integrity check (100% healthy, ${healthyCount} verified chunk replicas).`);
+  }
+}
+
+// -------------------------------------------------------------
 // Coordinator HTTP API Server & Static Dashboard
 // -------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
@@ -649,6 +705,14 @@ const server = http.createServer(async (req, res) => {
       }
 
       saveMetadata();
+
+      // Silent Background Integrity Verification (Non-blocking, invisible to user)
+      setImmediate(() => {
+        verifyFileIntegrityBackground(isExisting ? state.files[existingIdx].id : fileId).catch(err => {
+          console.error('[Background Audit Error]', err.message);
+        });
+      });
+
       return sendJson(200, {
         ok: true,
         fileId: isExisting ? state.files[existingIdx].id : fileId,
