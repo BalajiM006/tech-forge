@@ -92,30 +92,7 @@ button, input, textarea { font: inherit; color: inherit; }
 .vital.v-orange dd { color: #ffab5c; }
 .vital.v-red dd { color: #ff7b8b; }
 
-/* ---------- Workspace Header & Health Display ---------- */
-.title-with-health {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
 
-.workspace-health {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  padding: 5px 13px;
-  border-radius: 999px;
-  font: 500 12px/1 var(--font-mono);
-  color: #3b6b66;
-}
-
-.pulse.sm {
-  width: 8px;
-  height: 8px;
-}
 
 .grid {
   display: grid;
@@ -586,3 +563,104 @@ dialog::backdrop { background: rgba(16, 38, 43, .55); }
   border-top: 1px solid var(--line);
 }
 .chunk-modal-actions { display: flex; gap: 8px; }
+
+/* 3-PC Cluster Modal Styles */
+.cluster-mode-picker {
+  display: flex;
+  gap: 8px;
+  background: var(--surface-subtle);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+.cluster-mode-btn {
+  flex: 1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  font: 600 13px var(--font-body);
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.cluster-mode-btn.active {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.lan-node-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+.lan-node-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.lan-node-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.lan-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.lan-input-group label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.lan-input-group input {
+  padding: 5px 8px;
+  font: 500 13px var(--font-mono);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-subtle);
+  width: 140px;
+}
+.lan-input-group input:focus {
+  outline: none;
+  border-color: var(--teal-primary);
+  background: #fff;
+}
+.cli-box {
+  background: #10161a;
+  color: #a7b6c2;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font: 500 12.5px var(--font-mono);
+  overflow-x: auto;
+  user-select: all;
+  border: 1px solid #202b33;
+}
+.cli-box code { color: #43b794; }
+.badge-online {
+  background: #e6f7f2;
+  color: #0b735f;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-offline {
+  background: #fbeae8;
+  color: #c23030;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+

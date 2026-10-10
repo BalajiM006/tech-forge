@@ -1,0 +1,100 @@
+{
+  "mode": "lan",
+  "replicationFactor": 3,
+  "chunkSize": 8192,
+  "nodes": [
+    {
+      "id": "pc-1",
+      "name": "PC 1 (Coordinator / Host)",
+      "host": "127.0.0.1",
+      "port": 5001,
+      "zone": "zone-a",
+      "isLocal": true
+    },
+    {
+      "id": "pc-2",
+      "name": "PC 2 (Peer Machine)",
+      "host": "10.183.252.198",
+      "port": 5001,
+      "zone": "zone-b",
+      "isLocal": false
+    },
+    {
+      "id": "pc-3",
+      "name": "PC 3 (Peer Machine)",
+      "host": "10.183.252.238",
+      "port": 5001,
+      "zone": "zone-c",
+      "isLocal": false
+    }
+  ],
+  "coordinatorPort": 5000,
+  "lanPreset": [
+    {
+      "id": "pc-1",
+      "name": "PC 1 (Coordinator / Host)",
+      "host": "127.0.0.1",
+      "port": 5001,
+      "zone": "zone-a",
+      "isLocal": true
+    },
+    {
+      "id": "pc-2",
+      "name": "PC 2 (Peer Machine)",
+      "host": "192.168.137.2",
+      "port": 5001,
+      "zone": "zone-b",
+      "isLocal": false
+    },
+    {
+      "id": "pc-3",
+      "name": "PC 3 (Peer Machine)",
+      "host": "192.168.137.3",
+      "port": 5001,
+      "zone": "zone-c",
+      "isLocal": false
+    }
+  ],
+  "localPreset": [
+    {
+      "id": "node-1",
+      "name": "Node 1",
+      "host": "127.0.0.1",
+      "port": 5001,
+      "zone": "zone-a",
+      "isLocal": true
+    },
+    {
+      "id": "node-2",
+      "name": "Node 2",
+      "host": "127.0.0.1",
+      "port": 5002,
+      "zone": "zone-a",
+      "isLocal": true
+    },
+    {
+      "id": "node-3",
+      "name": "Node 3",
+      "host": "127.0.0.1",
+      "port": 5003,
+      "zone": "zone-b",
+      "isLocal": true
+    },
+    {
+      "id": "node-4",
+      "name": "Node 4",
+      "host": "127.0.0.1",
+      "port": 5004,
+      "zone": "zone-b",
+      "isLocal": true
+    },
+    {
+      "id": "node-5",
+      "name": "Node 5",
+      "host": "127.0.0.1",
+      "port": 5005,
+      "zone": "zone-c",
+      "isLocal": true
+    }
+  ]
+}

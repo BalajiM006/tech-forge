@@ -1,0 +1,10 @@
+# Node dependencies
+node_modules/
+npm-debug.log
+
+# Temporary & stored chunk files generated at runtime
+data/node-*/*.dat
+data/node-*/*.tmp
+data/pc-*/*.dat
+data/pc-*/*.tmp
+data/*.tmp

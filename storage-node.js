@@ -14,6 +14,7 @@ function getArg(flag, fallback) {
 
 const nodeId = getArg('--id', 'node-1');
 const port = parseInt(getArg('--port', '5001'), 10);
+const host = getArg('--host', '0.0.0.0');
 const dataDir = path.resolve(getArg('--dir', `./data/${nodeId}`));
 const zone = getArg('--zone', 'zone-a');
 
@@ -275,9 +276,17 @@ const server = http.createServer((req, res) => {
     }
   }
 
+  // POST /shutdown -> Chaos / Graceful shutdown endpoint
+  if (req.method === 'POST' && pathname === '/shutdown') {
+    console.log(`[${nodeId}] Received shutdown command.`);
+    sendJson(res, 200, { ok: true, stopped: nodeId });
+    setTimeout(() => process.exit(0), 100);
+    return;
+  }
+
   return sendJson(res, 404, { error: 'Endpoint not found' });
 });
 
-server.listen(port, () => {
-  console.log(`[${nodeId}] Storage Node active on port ${port} (Zone: ${zone}, Dir: ${dataDir})`);
+server.listen(port, host, () => {
+  console.log(`[${nodeId}] Storage Node active on ${host}:${port} (Zone: ${zone}, Dir: ${dataDir})`);
 });

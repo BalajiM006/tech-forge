@@ -8,23 +8,42 @@ const os = require('node:os');
 const { spawn } = require('node:child_process');
 
 const PORT = 5000;
-const RF = 3; // Replication Factor
-const CHUNK_SIZE = 8 * 1024; // 8 KB per chunk for granular chunk verification & delta repair
+const CONFIG_FILE = path.resolve('./cluster.config.json');
+
+// Default cluster configuration
+let clusterConfig = {
+  mode: 'lan',
+  replicationFactor: 3,
+  chunkSize: 8 * 1024,
+  nodes: [
+    { id: 'pc-1', name: 'PC 1 (Coordinator / Host)', host: '127.0.0.1', port: 5001, zone: 'zone-a', isLocal: true },
+    { id: 'pc-2', name: 'PC 2 (Peer Machine)', host: '192.168.137.2', port: 5001, zone: 'zone-b', isLocal: false },
+    { id: 'pc-3', name: 'PC 3 (Peer Machine)', host: '192.168.137.3', port: 5001, zone: 'zone-c', isLocal: false }
+  ]
+};
+
+function loadClusterConfig() {
+  if (fs.existsSync(CONFIG_FILE)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+      clusterConfig = { ...clusterConfig, ...data };
+    } catch (err) {
+      console.error('[Coordinator] Failed to read cluster.config.json:', err.message);
+    }
+  }
+}
+loadClusterConfig();
+
+let RF = clusterConfig.replicationFactor || 3;
+let CHUNK_SIZE = clusterConfig.chunkSize || 8 * 1024;
 const METADATA_DIR = path.resolve('./data');
 const METADATA_FILE = path.join(METADATA_DIR, 'metadata.json');
 
-if (!fs.existsSync(METADATA_DIR)) {
-  fs.mkdirSync(METADATA_DIR, { recursive: true });
+function getNodeUrl(node) {
+  if (!node) return 'http://127.0.0.1:5001';
+  const host = node.host || '127.0.0.1';
+  return `http://${host}:${node.port}`;
 }
-
-// Node definitions across 3 failure domains (zones)
-const NODE_CONFIGS = [
-  { id: 'node-1', port: 5001, zone: 'zone-a' },
-  { id: 'node-2', port: 5002, zone: 'zone-a' },
-  { id: 'node-3', port: 5003, zone: 'zone-b' },
-  { id: 'node-4', port: 5004, zone: 'zone-b' },
-  { id: 'node-5', port: 5005, zone: 'zone-c' }
-];
 
 // In-Memory Cluster State
 const state = {
@@ -90,6 +109,7 @@ function spawnNodeProcess(cfg) {
     path.join(__dirname, 'storage-node.js'),
     '--id', cfg.id,
     '--port', String(cfg.port),
+    '--host', '0.0.0.0',
     '--dir', nodeDir,
     '--zone', cfg.zone
   ], {
@@ -117,18 +137,32 @@ function spawnNodeProcess(cfg) {
 }
 
 function initNodes() {
-  for (const cfg of NODE_CONFIGS) {
-    const child = spawnNodeProcess(cfg);
+  for (const oldNode of Object.values(state.nodes)) {
+    if (oldNode.process) {
+      try { oldNode.process.kill('SIGTERM'); } catch {}
+    }
+  }
+  state.nodes = {};
+
+  for (const cfg of clusterConfig.nodes) {
+    const isLocal = cfg.isLocal !== false;
+    let child = null;
+    if (isLocal) {
+      child = spawnNodeProcess(cfg);
+    }
     state.nodes[cfg.id] = {
       id: cfg.id,
+      name: cfg.name || cfg.id,
+      host: cfg.host || '127.0.0.1',
       port: cfg.port,
       zone: cfg.zone,
-      status: 'UP',
+      isLocal,
+      status: isLocal ? 'UP' : 'SUSPECT',
       missedHeartbeats: 0,
       process: child
     };
   }
-  addLog('info', `Cluster initialized with ${NODE_CONFIGS.length} storage node processes.`);
+  addLog('info', `Cluster initialized with ${clusterConfig.nodes.length} nodes (Mode: ${(clusterConfig.mode || 'lan').toUpperCase()}).`);
 }
 
 // -------------------------------------------------------------
@@ -136,10 +170,10 @@ function initNodes() {
 // -------------------------------------------------------------
 async function checkNodeHeartbeat(node) {
   try {
-    const res = await fetch(`http://localhost:${node.port}/health`, { signal: AbortSignal.timeout(800) });
+    const res = await fetch(`${getNodeUrl(node)}/health`, { signal: AbortSignal.timeout(1200) });
     if (res.ok) {
       if (node.status !== 'UP') {
-        addLog('ok', `Node ${node.id} is back online (status: UP).`);
+        addLog('ok', `Node ${node.id} (${node.host}:${node.port}) is back online (status: UP).`);
       }
       node.status = 'UP';
       node.missedHeartbeats = 0;
@@ -150,10 +184,10 @@ async function checkNodeHeartbeat(node) {
   node.missedHeartbeats++;
   if (node.missedHeartbeats === 1 && node.status === 'UP') {
     node.status = 'SUSPECT';
-    addLog('warn', `Node ${node.id} missed heartbeat (status: SUSPECT).`);
+    addLog('warn', `Node ${node.id} (${node.host}:${node.port}) missed heartbeat (status: SUSPECT).`);
   } else if (node.missedHeartbeats >= 3 && node.status !== 'DOWN') {
     node.status = 'DOWN';
-    addLog('err', `Node ${node.id} failed 3 heartbeats (status: DOWN).`);
+    addLog('err', `Node ${node.id} (${node.host}:${node.port}) failed 3 heartbeats (status: DOWN).`);
   }
   return false;
 }
@@ -217,7 +251,10 @@ async function scrubCluster() {
 
     for (const replica of chunk.replicas) {
       const node = state.nodes[replica.nodeId];
-      if (!node || node.status === 'DOWN') {
+      if (!node) {
+        continue;
+      }
+      if (node.status === 'DOWN') {
         if (replica.state !== 'MISSING') {
           replica.state = 'MISSING';
           addLog('warn', `Replica ${hash.slice(0, 8)} marked MISSING (Node ${replica.nodeId} is DOWN).`);
@@ -227,9 +264,9 @@ async function scrubCluster() {
 
       // Verify checksum on the node
       try {
-        const res = await fetch(`http://localhost:${node.port}/verify/${hash}`, {
+        const res = await fetch(`${getNodeUrl(node)}/verify/${hash}`, {
           method: 'POST',
-          signal: AbortSignal.timeout(1200)
+          signal: AbortSignal.timeout(1500)
         });
         if (res.ok) {
           const data = await res.json();
@@ -302,8 +339,7 @@ async function processRepairQueue() {
   const candidates = Object.values(state.nodes).filter(n => n.status === 'UP' && !existingGoodNodes.includes(n.id));
 
   if (candidates.length === 0) {
-    // No spare node available right now; re-enqueue
-    state.repairQueue.push(hash);
+    // No spare node online right now; will retry on next scrubber pass
     delete state.repairLeases[hash];
     return;
   }
@@ -316,7 +352,7 @@ async function processRepairQueue() {
 
   try {
     // 1. Fetch chunk from verified source
-    const srcRes = await fetch(`http://localhost:${sourceNode.port}/chunk/${hash}`);
+    const srcRes = await fetch(`${getNodeUrl(sourceNode)}/chunk/${hash}`);
     if (!srcRes.ok) throw new Error(`Source node ${sourceNode.id} failed to stream chunk`);
     const buffer = Buffer.from(await srcRes.arrayBuffer());
 
@@ -327,7 +363,7 @@ async function processRepairQueue() {
     }
 
     // 3. Safe Write to target node (PUT chunk)
-    const putRes = await fetch(`http://localhost:${targetNode.port}/chunk/${hash}`, {
+    const putRes = await fetch(`${getNodeUrl(targetNode)}/chunk/${hash}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/octet-stream' },
       body: buffer
@@ -384,8 +420,11 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && pathname === '/api/status') {
     const nodesList = Object.values(state.nodes).map(n => ({
       id: n.id,
+      name: n.name || n.id,
+      host: n.host || '127.0.0.1',
       port: n.port,
       zone: n.zone,
+      isLocal: n.isLocal !== false,
       status: n.status,
       up: n.status === 'UP',
       storedChunks: getStoredChunkCount(n.id)
@@ -404,6 +443,7 @@ const server = http.createServer(async (req, res) => {
 
     return sendJson(200, {
       healthPercent,
+      mode: clusterConfig.mode || 'lan',
       nodes: nodesList,
       files: state.files,
       chunks: state.chunks,
@@ -411,6 +451,49 @@ const server = http.createServer(async (req, res) => {
       repairQueueLength: state.repairQueue.length,
       log: state.log.slice(0, 40)
     });
+  }
+
+  // Cluster Configuration API
+  if (req.method === 'GET' && pathname === '/api/cluster/config') {
+    return sendJson(200, {
+      mode: clusterConfig.mode || 'lan',
+      replicationFactor: RF,
+      chunkSize: CHUNK_SIZE,
+      localIps: getLocalIps(),
+      nodes: clusterConfig.nodes,
+      lanPreset: clusterConfig.lanPreset,
+      localPreset: clusterConfig.localPreset
+    });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/cluster/config') {
+    const configData = [];
+    req.on('data', chunk => configData.push(chunk));
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(Buffer.concat(configData).toString('utf8'));
+        if (payload.mode) clusterConfig.mode = payload.mode;
+        if (payload.replicationFactor) {
+          clusterConfig.replicationFactor = parseInt(payload.replicationFactor, 10);
+          RF = clusterConfig.replicationFactor;
+        }
+        if (Array.isArray(payload.nodes) && payload.nodes.length) {
+          clusterConfig.nodes = payload.nodes;
+        }
+        fs.writeFileSync(CONFIG_FILE, JSON.stringify(clusterConfig, null, 2));
+        initNodes();
+        runHeartbeats();
+        addLog('ok', `[CONFIG] Updated cluster topology (${(clusterConfig.mode || 'lan').toUpperCase()} mode, ${clusterConfig.nodes.length} nodes).`);
+        return sendJson(200, {
+          ok: true,
+          message: 'Cluster configuration applied successfully',
+          config: clusterConfig
+        });
+      } catch (err) {
+        return sendJson(400, { error: 'Failed to update config: ' + err.message });
+      }
+    });
+    return;
   }
 
   // 2. Upload File API: Multi-Chunk Splitting & Quorum Safe Write
@@ -504,7 +587,7 @@ const server = http.createServer(async (req, res) => {
             let ackCount = 0;
             const writePromises = targetNodes.map(async node => {
               try {
-                const putRes = await fetch(`http://localhost:${node.port}/chunk/${hash}`, {
+                const putRes = await fetch(`${getNodeUrl(node)}/chunk/${hash}`, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/octet-stream' },
                   body: slice
@@ -676,7 +759,7 @@ const server = http.createServer(async (req, res) => {
       for (const replica of sortedReplicas) {
         const node = state.nodes[replica.nodeId];
         try {
-          const res = await fetch(`http://localhost:${node.port}/chunk/${chunkHash}`);
+          const res = await fetch(`${getNodeUrl(node)}/chunk/${chunkHash}`);
           if (res.ok) {
             const buf = Buffer.from(await res.arrayBuffer());
             const hashCheck = crypto.createHash('sha256').update(buf).digest('hex');
@@ -721,19 +804,23 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/chaos/kill-node') {
     const nodeId = url.searchParams.get('nodeId');
     const node = state.nodes[nodeId];
-    if (!node || !node.process) {
-      return sendJson(400, { error: 'Node process not running or invalid' });
+    if (!node) {
+      return sendJson(400, { error: 'Node not found' });
     }
-    node.process.kill('SIGKILL');
-    node.process = null;
+    if (node.process) {
+      node.process.kill('SIGKILL');
+      node.process = null;
+    } else {
+      fetch(`${getNodeUrl(node)}/shutdown`, { method: 'POST' }).catch(() => {});
+    }
     node.status = 'DOWN';
-    addLog('err', `[CHAOS] Terminated Node process ${nodeId} (SIGKILL).`);
+    addLog('err', `[CHAOS] Terminated Node process ${nodeId}.`);
     return sendJson(200, { ok: true, killed: nodeId });
   }
 
   if (req.method === 'POST' && pathname === '/api/chaos/recover-node') {
     const nodeId = url.searchParams.get('nodeId');
-    const cfg = NODE_CONFIGS.find(n => n.id === nodeId);
+    const cfg = clusterConfig.nodes.find(n => n.id === nodeId);
     if (!cfg) return sendJson(404, { error: 'Node config not found' });
 
     const node = state.nodes[nodeId];
@@ -741,8 +828,10 @@ const server = http.createServer(async (req, res) => {
       return sendJson(400, { error: 'Node already running' });
     }
 
-    const child = spawnNodeProcess(cfg);
-    state.nodes[nodeId].process = child;
+    if (cfg.isLocal !== false) {
+      const child = spawnNodeProcess(cfg);
+      state.nodes[nodeId].process = child;
+    }
     state.nodes[nodeId].status = 'UP';
     state.nodes[nodeId].missedHeartbeats = 0;
     addLog('ok', `[CHAOS] Recovered / Restarted storage node process ${nodeId}.`);
@@ -754,7 +843,7 @@ const server = http.createServer(async (req, res) => {
     const upNodes = Object.values(state.nodes).filter(n => n.status === 'UP');
     for (const node of upNodes) {
       try {
-        const res = await fetch(`http://localhost:${node.port}/corrupt-random`, { method: 'POST' });
+        const res = await fetch(`${getNodeUrl(node)}/corrupt-random`, { method: 'POST' });
         if (res.ok) {
           const data = await res.json();
           addLog('warn', `[CHAOS] Injected bit-rot into chunk ${data.corrupted.slice(0, 8)} on ${data.nodeId}!`);
@@ -785,9 +874,9 @@ const server = http.createServer(async (req, res) => {
         const chMeta = state.chunks[ch];
         if (chMeta && Array.isArray(chMeta.replicas)) {
           for (const rep of chMeta.replicas) {
-            const nodeCfg = NODE_CONFIGS.find(n => n.id === rep.nodeId);
+            const nodeCfg = clusterConfig.nodes.find(n => n.id === rep.nodeId);
             if (nodeCfg) {
-              fetch(`http://localhost:${nodeCfg.port}/chunk/${ch}`, { method: 'DELETE' }).catch(() => {});
+              fetch(`${getNodeUrl(nodeCfg)}/chunk/${ch}`, { method: 'DELETE' }).catch(() => {});
             }
           }
         }
@@ -869,8 +958,9 @@ const server = http.createServer(async (req, res) => {
     return sendJson(404, { error: 'File not found' });
   }
 
-  // 6. Static File Server (serves index.html, script.js, style.css)
+  // 6. Static File Server (serves index.html, script.js, style.css, favicon.svg)
   let staticPath = pathname === '/' ? '/index.html' : pathname;
+  if (staticPath === '/favicon.ico') staticPath = '/favicon.svg';
   const localFile = path.join(__dirname, staticPath);
 
   if (fs.existsSync(localFile) && fs.statSync(localFile).isFile()) {
@@ -889,60 +979,11 @@ const server = http.createServer(async (req, res) => {
   return sendJson(404, { error: 'Not found' });
 });
 
-// Seed Initial Files if database is empty
-function seedDemoFiles() {
-  if (state.files.length > 0) return;
-
-  const sampleFiles = [
-    { name: 'project-report.pdf', content: 'Mend Self-Repairing Storage System Report v1.0. High durability multi-process storage architecture.' },
-    { name: 'financial-backup.csv', content: 'id,transaction,amount,timestamp\n1,tx_0192,4500.00,2026-10-09\n2,tx_0193,120.50,2026-10-09' },
-    { name: 'system-config.yaml', content: 'cluster:\n  replication_factor: 3\n  scrubber_interval_sec: 2\n  safe_write: true\n  zone_aware: true' }
-  ];
-
-  setTimeout(async () => {
-    for (const sample of sampleFiles) {
-      const buf = Buffer.from(sample.content);
-      const hash = crypto.createHash('sha256').update(buf).digest('hex');
-      const targetNodes = selectNodesForChunk();
-
-      state.chunks[hash] = {
-        hash,
-        size: buf.length,
-        replicas: []
-      };
-
-      for (const node of targetNodes) {
-        try {
-          await fetch(`http://localhost:${node.port}/chunk/${hash}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/octet-stream' },
-            body: buf
-          });
-          state.chunks[hash].replicas.push({ nodeId: node.id, state: 'GOOD' });
-        } catch {}
-      }
-
-      state.files.push({
-        id: 'file_' + crypto.randomBytes(6).toString('hex'),
-        name: sample.name,
-        size: buf.length,
-        chunks: [hash],
-        version: 1,
-        status: 'ok',
-        updatedAt: Date.now()
-      });
-    }
-    saveMetadata();
-    addLog('ok', 'Seeded initial sample files across nodes with RF=3.');
-  }, 1500);
-}
-
 // -------------------------------------------------------------
 // Bootstrapping
 // -------------------------------------------------------------
 loadMetadata();
 initNodes();
-seedDemoFiles();
 
 // Periodic Heartbeats (Every 1.2s)
 setInterval(runHeartbeats, 1200);
@@ -967,11 +1008,15 @@ server.listen(PORT, '0.0.0.0', () => {
   const ips = getLocalIps();
   console.log(`====================================================`);
   console.log(` MEND COORDINATOR & OBJECT STORE ACTIVE`);
+  console.log(` Mode:             ${(clusterConfig.mode || 'lan').toUpperCase()}`);
   console.log(` Local Dashboard:  http://localhost:${PORT}`);
   if (ips.length) {
     ips.forEach(ip => console.log(` Network Link:      http://${ip}:${PORT}`));
   }
-  console.log(` Storage Nodes:    5 Processes on ports 5001 - 5005`);
+  console.log(` Storage Nodes:    ${clusterConfig.nodes.length} nodes configured`);
+  clusterConfig.nodes.forEach(n => {
+    console.log(`   - ${n.id} (${n.name || n.id}) at ${n.host || '127.0.0.1'}:${n.port} [${n.isLocal !== false ? 'LOCAL' : 'REMOTE'}]`);
+  });
   console.log(` Replication Factor: RF=${RF} (Safe writes + Auto-healing)`);
   console.log(`====================================================`);
 });

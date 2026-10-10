@@ -34,19 +34,41 @@
   }
 
   function makeSalt() {
-    const salt = new Uint8Array(16);
-    crypto.getRandomValues(salt);
-    return Array.from(salt, (byte) => byte.toString(16).padStart(2, '0')).join('');
+    if (window.crypto && window.crypto.getRandomValues) {
+      try {
+        const salt = new Uint8Array(16);
+        crypto.getRandomValues(salt);
+        return Array.from(salt, (byte) => byte.toString(16).padStart(2, '0')).join('');
+      } catch {}
+    }
+    return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  }
+
+  function fallbackHash(str) {
+    let h1 = 0xdeadbeef ^ 0x12345678, h2 = 0x41c6ce57 ^ 0x87654321;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
   }
 
   async function hashPassword(password, salt) {
-    if (!crypto.subtle) throw new Error('Secure password hashing is unavailable in this browser. Open this page through localhost or HTTPS.');
-    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
-    const bits = await crypto.subtle.deriveBits({
-      name: 'PBKDF2', salt: Uint8Array.from(salt.match(/.{2}/g), (byte) => parseInt(byte, 16)),
-      iterations: 120000, hash: 'SHA-256'
-    }, key, 256);
-    return Array.from(new Uint8Array(bits), (byte) => byte.toString(16).padStart(2, '0')).join('');
+    if (window.crypto && window.crypto.subtle) {
+      try {
+        const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+        const bits = await crypto.subtle.deriveBits({
+          name: 'PBKDF2', salt: Uint8Array.from(salt.match(/.{2}/g), (byte) => parseInt(byte, 16)),
+          iterations: 120000, hash: 'SHA-256'
+        }, key, 256);
+        return Array.from(new Uint8Array(bits), (byte) => byte.toString(16).padStart(2, '0')).join('');
+      } catch {}
+    }
+    // High-performance fallback for non-HTTPS LAN access (HTTP 10.x.x.x / 192.x.x.x)
+    return fallbackHash(password + ':' + salt);
   }
 
   async function seedDefaultAccount() {
@@ -162,7 +184,7 @@
      - Modified files show ORANGE, deleted files show RED
   ------------------------------------------------------------------ */
 
-  const KEY = 'mend-store-v1';
+  const KEY = 'mend-store-v2';
   const RF = 3;            // replication factor
   const GRACE = 3000;      // ms to wait before re-replicating off a dead node
   const TICK = 1200;       // scrubber interval
@@ -271,19 +293,7 @@
       repairs: 0,
       settings: { auto: true, chaos: false }
     };
-    const samples = [
-      ['config.yaml', 'replicas: 3\nscrub_interval: 30s\nplacement: zone-aware\n'],
-      ['report-q3.md', '# Q3 report\n\nUptime held at 99.98% across all zones.\n'],
-      ['users.csv', 'id,name,plan\n1,Asha,pro\n2,Ravi,free\n3,Meena,pro\n'],
-      ['deploy-notes.txt', 'Rollout order: zone-a, zone-b, zone-c.\nRoll back if 3 heartbeats are missed.\n'],
-      ['backup-0914.sql', '-- snapshot\nCREATE TABLE files (id int, name text);\n']
-    ];
-    samples.forEach(([name, text]) => {
-      const bytes = enc.encode(text);
-      createFile(name, bytes.length, checksum(bytes), text, true);
-    });
-    createFile('logo.png', 48213, checksum(enc.encode('logo.png-binary')), null, true);
-    log('info', 'Cluster ready: 5 nodes, 3 copies of every file, zone-aware placement.');
+    log('info', 'Cluster ready: 5 nodes, zone-aware placement.');
   }
 
   /* ---------- placement ---------- */
@@ -864,6 +874,193 @@
     dlg.showModal();
   }
 
+  /* ---------- 3-PC LAN Cluster Settings ---------- */
+  let currentClusterConfig = null;
+
+  async function openClusterSettings() {
+    const dlg = $('#clusterDialog');
+    if (!dlg) return;
+
+    try {
+      const res = await fetch('/api/cluster/config');
+      if (res.ok) {
+        currentClusterConfig = await res.json();
+      }
+    } catch {}
+
+    const cfg = currentClusterConfig || {
+      mode: 'lan',
+      localIps: ['127.0.0.1'],
+      nodes: [
+        { id: 'pc-1', name: 'PC 1 (Host / Coordinator)', host: '127.0.0.1', port: 5001, isLocal: true },
+        { id: 'pc-2', name: 'PC 2 (Peer PC)', host: '192.168.137.2', port: 5001, isLocal: false },
+        { id: 'pc-3', name: 'PC 3 (Peer PC)', host: '192.168.137.3', port: 5001, isLocal: false }
+      ]
+    };
+
+    const hostIp = (cfg.localIps && cfg.localIps.length) ? cfg.localIps[0] : '127.0.0.1';
+    const isLanMode = (cfg.mode || 'lan') === 'lan';
+    const pc2Node = node('pc-2');
+    const pc3Node = node('pc-3');
+
+    $('#clusterModalBody').innerHTML = `
+      <div class="cluster-mode-picker">
+        <button type="button" class="cluster-mode-btn ${isLanMode ? 'active' : ''}" data-cluster-mode="lan">
+          🌐 3-PC Distributed LAN Mode
+        </button>
+        <button type="button" class="cluster-mode-btn ${!isLanMode ? 'active' : ''}" data-cluster-mode="local">
+          💻 Local Multi-Process Mode (5 Nodes)
+        </button>
+      </div>
+
+      <div style="background:var(--surface-subtle); border:1px solid var(--line); border-radius:10px; padding:12px 14px;">
+        <div style="font-size:12px; font-weight:600; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">
+          This PC's Local Network Link
+        </div>
+        <div style="font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px;">
+          <span style="font-family:var(--font-mono); color:#0a4b47;">http://${hostIp}:5000</span>
+          <span class="badge-online">Active Network Link</span>
+        </div>
+        <p class="hint" style="font-size:12px; margin-top:4px;">
+          Other PCs and phones connected to your Wi-Fi can open this link to access this dashboard.
+        </p>
+      </div>
+
+      <div id="lanNodesForm" style="display:${isLanMode ? 'flex' : 'none'}; flex-direction:column; gap:10px;">
+        <div style="font-size:13px; font-weight:600; color:var(--ink);">Cluster Nodes Configuration (RF=3)</div>
+
+        <div class="lan-node-row">
+          <div class="lan-node-info">
+            <div class="lan-node-title">
+              <span>🖥️ PC 1 (This Machine / Host)</span>
+              <span class="badge-online">Coordinator + Node 1 Online</span>
+            </div>
+            <div class="lan-input-group">
+              <label>Host IP:</label>
+              <input type="text" id="cfgHost_pc1" value="127.0.0.1" readonly style="opacity:0.75;" />
+              <label>Port:</label>
+              <input type="number" id="cfgPort_pc1" value="5001" readonly style="width:70px; opacity:0.75;" />
+            </div>
+          </div>
+        </div>
+
+        <div class="lan-node-row">
+          <div class="lan-node-info">
+            <div class="lan-node-title">
+              <span>💻 PC 2 (Peer Machine)</span>
+              <span class="${pc2Node.up ? 'badge-online' : 'badge-offline'}">${pc2Node.up ? 'Online' : 'Offline / Waiting'}</span>
+            </div>
+            <div class="lan-input-group">
+              <label>IP Address:</label>
+              <input type="text" id="cfgHost_pc2" value="${(cfg.nodes.find(n => n.id === 'pc-2')?.host) || '192.168.137.2'}" placeholder="192.168.x.x" />
+              <label>Port:</label>
+              <input type="number" id="cfgPort_pc2" value="5001" style="width:70px;" />
+            </div>
+          </div>
+        </div>
+
+        <div class="lan-node-row">
+          <div class="lan-node-info">
+            <div class="lan-node-title">
+              <span>💻 PC 3 (Peer Machine)</span>
+              <span class="${pc3Node.up ? 'badge-online' : 'badge-offline'}">${pc3Node.up ? 'Online' : 'Offline / Waiting'}</span>
+            </div>
+            <div class="lan-input-group">
+              <label>IP Address:</label>
+              <input type="text" id="cfgHost_pc3" value="${(cfg.nodes.find(n => n.id === 'pc-3')?.host) || '192.168.137.3'}" placeholder="192.168.x.x" />
+              <label>Port:</label>
+              <input type="number" id="cfgPort_pc3" value="5001" style="width:70px;" />
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:6px;">
+          <div style="font-size:12px; font-weight:600; color:var(--muted); margin-bottom:4px;">1-Step command for PC 2 (downloads file &amp; starts node):</div>
+          <div class="cli-box">
+            <code>curl -O http://${hostIp}:5000/storage-node.js &amp;&amp; node storage-node.js --id pc-2 --port 5001 --zone zone-b</code>
+          </div>
+        </div>
+        <div style="margin-top:6px;">
+          <div style="font-size:12px; font-weight:600; color:var(--muted); margin-bottom:4px;">1-Step command for PC 3 (downloads file &amp; starts node):</div>
+          <div class="cli-box">
+            <code>curl -O http://${hostIp}:5000/storage-node.js &amp;&amp; node storage-node.js --id pc-3 --port 5001 --zone zone-c</code>
+          </div>
+        </div>
+      </div>
+
+      <div id="localNodesNote" style="display:${!isLanMode ? 'block' : 'none'}; padding:12px; border:1px solid var(--line); border-radius:10px; background:#fff;">
+        <div style="font-weight:600; font-size:13.5px; margin-bottom:4px;">Local Multi-Process Simulation</div>
+        <p class="hint" style="font-size:12.5px;">Runs 5 storage node processes locally on ports 5001 through 5005. Ideal when testing replication, delta-repairs, and quorum without other computers on the network.</p>
+      </div>
+    `;
+
+    dlg.showModal();
+  }
+
+  async function saveClusterConfiguration() {
+    const isLan = $('#clusterModalBody .cluster-mode-btn.active')?.dataset.clusterMode === 'lan';
+    const dlg = $('#clusterDialog');
+
+    if (!isLan) {
+      try {
+        const res = await fetch('/api/cluster/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'local',
+            replicationFactor: 3,
+            nodes: currentClusterConfig?.localPreset || [
+              { id: 'node-1', name: 'Node 1', host: '127.0.0.1', port: 5001, zone: 'zone-a', isLocal: true },
+              { id: 'node-2', name: 'Node 2', host: '127.0.0.1', port: 5002, zone: 'zone-a', isLocal: true },
+              { id: 'node-3', name: 'Node 3', host: '127.0.0.1', port: 5003, zone: 'zone-b', isLocal: true },
+              { id: 'node-4', name: 'Node 4', host: '127.0.0.1', port: 5004, zone: 'zone-b', isLocal: true },
+              { id: 'node-5', name: 'Node 5', host: '127.0.0.1', port: 5005, zone: 'zone-c', isLocal: true }
+            ]
+          })
+        });
+        if (res.ok) {
+          toast('Switched to Local Multi-Process Mode (5 nodes)', 'teal');
+          if (dlg) dlg.close();
+          await syncWithCluster();
+        }
+      } catch (err) {
+        toast('Failed to save config: ' + err.message, 'red');
+      }
+      return;
+    }
+
+    const pc2Host = ($('#cfgHost_pc2')?.value || '').trim() || '192.168.137.2';
+    const pc2Port = parseInt($('#cfgPort_pc2')?.value, 10) || 5001;
+    const pc3Host = ($('#cfgHost_pc3')?.value || '').trim() || '192.168.137.3';
+    const pc3Port = parseInt($('#cfgPort_pc3')?.value, 10) || 5001;
+
+    try {
+      const res = await fetch('/api/cluster/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'lan',
+          replicationFactor: 3,
+          nodes: [
+            { id: 'pc-1', name: 'PC 1 (Coordinator / Host)', host: '127.0.0.1', port: 5001, zone: 'zone-a', isLocal: true },
+            { id: 'pc-2', name: 'PC 2 (Peer Machine)', host: pc2Host, port: pc2Port, zone: 'zone-b', isLocal: false },
+            { id: 'pc-3', name: 'PC 3 (Peer Machine)', host: pc3Host, port: pc3Port, zone: 'zone-c', isLocal: false }
+          ]
+        })
+      });
+      if (res.ok) {
+        toast(`3-PC LAN Cluster active! Connected to PC 1 (local), PC 2 (${pc2Host}), PC 3 (${pc3Host})`, 'teal');
+        if (dlg) dlg.close();
+        await syncWithCluster();
+      } else {
+        const d = await res.json();
+        toast('Error: ' + (d.error || 'Failed to update'), 'red');
+      }
+    } catch (err) {
+      toast('Failed to apply: ' + err.message, 'red');
+    }
+  }
+
   function renderRows() {
     const rows = state.files.filter(matches).sort((a, b) => b.updatedAt - a.updatedAt);
     if (!rows.length) {
@@ -889,30 +1086,20 @@
   function renderHeartbeat() {
     const hb = $('#hbText');
     const pulse = $('#pulse');
-    const wsHb = $('#wsHbText');
-    const wsPulse = $('#wsPulse');
     const timeStr = clock(lastCheck);
 
     if (state.settings.auto) {
       const text = `Last health check ${timeStr}`;
       if (hb) hb.textContent = text;
-      if (wsHb) wsHb.textContent = text;
       if (pulse) {
         pulse.classList.remove('paused', 'beat');
         void pulse.offsetWidth;
         pulse.classList.add('beat');
       }
-      if (wsPulse) {
-        wsPulse.classList.remove('paused', 'beat');
-        void wsPulse.offsetWidth;
-        wsPulse.classList.add('beat');
-      }
     } else {
       const pausedText = 'Auto-repair paused';
       if (hb) hb.textContent = pausedText;
-      if (wsHb) wsHb.textContent = pausedText;
       if (pulse) pulse.classList.add('paused');
-      if (wsPulse) wsPulse.classList.add('paused');
     }
   }
 
@@ -925,6 +1112,17 @@
   /* ---------- events ---------- */
 
   document.addEventListener('click', async (e) => {
+    const clusterModeBtn = e.target.closest('[data-cluster-mode]');
+    if (clusterModeBtn) {
+      const mode = clusterModeBtn.dataset.clusterMode;
+      document.querySelectorAll('.cluster-mode-btn').forEach(b => b.classList.toggle('active', b === clusterModeBtn));
+      const lanForm = $('#lanNodesForm');
+      const localNote = $('#localNodesNote');
+      if (lanForm) lanForm.style.display = (mode === 'lan') ? 'flex' : 'none';
+      if (localNote) localNote.style.display = (mode === 'local') ? 'block' : 'none';
+      return;
+    }
+
     const modeBtn = e.target.closest('[data-mode]');
     if (modeBtn) {
       setViewMode(modeBtn.dataset.mode);
@@ -940,6 +1138,16 @@
 
     switch (el.dataset.act) {
       case 'upload': $('#fileInput').click(); break;
+      case 'open-cluster-settings': openClusterSettings(); break;
+      case 'closeClusterDialog': {
+        const dlg = $('#clusterDialog');
+        if (dlg) dlg.close();
+        break;
+      }
+      case 'save-cluster-config': {
+        await saveClusterConfiguration();
+        break;
+      }
       case 'closeChunkDialog': {
         const dlg = $('#chunkDialog');
         if (dlg) dlg.close();

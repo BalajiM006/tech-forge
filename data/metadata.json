@@ -1,10 +1,258 @@
 {
-  "files": [],
-  "chunks": {},
+  "files": [
+    {
+      "id": "file_26e278965f33",
+      "name": "3RD SEM NOV-DEC 2026 (1).docx",
+      "size": 36103,
+      "chunks": [
+        "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706",
+        "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3",
+        "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476",
+        "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0",
+        "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc"
+      ],
+      "baselineChunks": [
+        "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706",
+        "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3",
+        "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476",
+        "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0",
+        "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc"
+      ],
+      "chunkDetails": [
+        {
+          "index": 1,
+          "hash": "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706",
+          "baselineHash": "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706",
+          "size": 8192,
+          "status": "reused",
+          "note": "Healed: Copied from healthy cluster replicas"
+        },
+        {
+          "index": 2,
+          "hash": "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3",
+          "baselineHash": "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3",
+          "size": 8192,
+          "status": "reused",
+          "note": "Healed: Copied from healthy cluster replicas"
+        },
+        {
+          "index": 3,
+          "hash": "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476",
+          "baselineHash": "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476",
+          "size": 8192,
+          "status": "reused",
+          "note": "Healed: Copied from healthy cluster replicas"
+        },
+        {
+          "index": 4,
+          "hash": "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0",
+          "baselineHash": "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0",
+          "size": 8192,
+          "status": "reused",
+          "note": "Healed: Copied from healthy cluster replicas"
+        },
+        {
+          "index": 5,
+          "hash": "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc",
+          "baselineHash": "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc",
+          "size": 3335,
+          "status": "reused",
+          "note": "Healed: Copied from healthy cluster replicas"
+        }
+      ],
+      "reusedCount": 5,
+      "affectedCount": 0,
+      "version": 3,
+      "status": "ok",
+      "updatedAt": 1791598294535
+    }
+  ],
+  "chunks": {
+    "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706": {
+      "hash": "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3": {
+      "hash": "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476": {
+      "hash": "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0": {
+      "hash": "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc": {
+      "hash": "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc",
+      "size": 3314,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "dbd51caef17c2f3bcb3e7706474dd3bcd63865fba4557668fdfc9b7bd5f9f7ca": {
+      "hash": "dbd51caef17c2f3bcb3e7706474dd3bcd63865fba4557668fdfc9b7bd5f9f7ca",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "498075c1ce95b58b67bbdf93bb7781add53038e92e2728cd8d3393181ab5f02f": {
+      "hash": "498075c1ce95b58b67bbdf93bb7781add53038e92e2728cd8d3393181ab5f02f",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "859b6c4eba1a070492ad57fb78cc930269276dbea1c342bc5f86ffcaea9b910b": {
+      "hash": "859b6c4eba1a070492ad57fb78cc930269276dbea1c342bc5f86ffcaea9b910b",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "a2b0d880c879c11f3b1d2b587dac110da28e70a749000ea459c9af10507bc670": {
+      "hash": "a2b0d880c879c11f3b1d2b587dac110da28e70a749000ea459c9af10507bc670",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "8ad0b60751a9a0cc40159e140ee8be4271dabfd726043118921d8ee38248c006": {
+      "hash": "8ad0b60751a9a0cc40159e140ee8be4271dabfd726043118921d8ee38248c006",
+      "size": 3335,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        }
+      ]
+    }
+  },
   "metrics": {
-    "restores": 16,
-    "corruptionsCaught": 3,
-    "repairsCompleted": 48,
+    "restores": 9,
+    "corruptionsCaught": 2,
+    "repairsCompleted": 39,
     "integrityViolations": 0
   }
 }

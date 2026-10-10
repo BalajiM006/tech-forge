@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mend · Self-repairing replicated file store</title>
+  <title>Mend</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -108,14 +109,7 @@
         <section class="panel files" aria-labelledby="filesTitle">
           <div class="section-head">
             <div>
-              <div class="title-with-health">
-                <h2 id="filesTitle">Files</h2>
-                <div class="workspace-health" id="workspaceHealth"
-                  title="Auto-repair and cluster integrity verification">
-                  <span class="pulse sm" id="wsPulse"></span>
-                  <span id="wsHbText">Last health check just now</span>
-                </div>
-              </div>
+              <h2 id="filesTitle">Files</h2>
               <p class="hint">Changed files show in <b class="tag-orange">orange</b>. Deleted files show in <b
                   class="tag-red">red</b>.</p>
             </div>
@@ -127,6 +121,7 @@
           <div class="toolbar">
             <div class="filters" id="filters" role="tablist" aria-label="Filter files"></div>
             <div class="toolbar-right">
+              <button class="btn small" data-act="open-cluster-settings" id="btnClusterSettings" style="background:#0a4b47; color:#fff; font-weight:600;">🌐 3-PC LAN Cluster</button>
               <button class="btn small danger" data-act="purge-all-deleted" id="btnPurgeAllDeleted"
                 style="display:none">Empty trash</button>
               <button class="btn small ghost" data-act="clearreviewed">Mark all reviewed</button>
@@ -173,6 +168,27 @@
             <button type="button" class="btn ghost" data-act="closeChunkDialog">Cancel</button>
             <button type="button" class="btn warn" id="btnMendModal" data-act="mend-from-modal">Mend &amp; Restore from
               Chunks</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- 3-PC LAN Cluster Configuration Dialog -->
+    <dialog id="clusterDialog" class="chunk-dialog" aria-labelledby="clusterDialogTitle">
+      <div class="chunk-modal" style="max-width: 720px; width: 95%;">
+        <div class="chunk-modal-head">
+          <div>
+            <h3 id="clusterDialogTitle">🌐 3-PC Distributed LAN Cluster Setup</h3>
+            <p class="hint">Distribute file chunks across 3 physical PCs with automatic SHA-256 self-repair</p>
+          </div>
+          <button type="button" class="btn small ghost" data-act="closeClusterDialog" aria-label="Close dialog">Close</button>
+        </div>
+        <div class="chunk-modal-body" id="clusterModalBody" style="gap: 16px;"></div>
+        <div class="chunk-modal-foot">
+          <span class="hint" id="clusterModalHint">Ensure all 3 PCs are connected to the same Wi-Fi / LAN network.</span>
+          <div class="chunk-modal-actions">
+            <button type="button" class="btn ghost" data-act="closeClusterDialog">Cancel</button>
+            <button type="button" class="btn primary" id="btnSaveClusterConfig" data-act="save-cluster-config">Apply &amp; Connect Cluster</button>
           </div>
         </div>
       </div>
