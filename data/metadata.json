@@ -1,165 +1,165 @@
 {
   "files": [
     {
-      "id": "file_26e278965f33",
-      "name": "3RD SEM NOV-DEC 2026 (1).docx",
-      "size": 36103,
+      "id": "file_2e0ba5b4e255",
+      "name": "HORIZON_2K26_Problem_Statements_Print_Edition.pdf",
+      "size": 111609,
       "chunks": [
-        "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706",
-        "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3",
-        "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476",
-        "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0",
-        "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc"
+        "ac8e18a173861c9e268703a78cf357ad28dd5e7c1dde835fdef83d87526f7c23",
+        "a5e58c58c72a0bde391ee7439eb2965985429b519090e20cb8c7bd061e14d08f",
+        "b3038dac436fc638a4aaa4b037d7b77c2bb8fab3c8c2c725b57964939868db50",
+        "3c7658ddcc36194c9e1e422869c452a1d9f74b9ded23a56ff8a2f3366c7d38da",
+        "5bf523173e1a173358649fa83cf085422604d3010d43c6c85d58bb474226fc17",
+        "8244de996281fa67adaa31931921a4e1c0a9f0aabb398026570483a651ecf27a",
+        "0f8c78d7bfc0329c3ebf8c11b619f2d9e52440f4ea66056a126ce0ada0ba7e01",
+        "ba067c1b3c6309dc39b7a775a2bd58aa6036190f44398948a70ee5859f7f93f7",
+        "23474b3e21d0b7271aed48102922ac49773385d6cfc870d1a79c14490820ed6b",
+        "5e97004d6745939071b971ee434f340d117546d8121846e75dc32d20ab3fbaf5",
+        "137109546ce2f427ad507fc494a33563999ad193a9779f00f4a29d060f5b70d1",
+        "7b7d06c7301b7e4491adf06068a460f54fc8780b6df92125321eee8cda8f6a3a",
+        "df0ad91f81e50e75cdfca0ccbe065abb270e5ec9c40c103f60848b78384ce332",
+        "ead780c1e856f3ac8eaa63edf8f101b85df8a27776ecd20a3206422563c254f5"
       ],
       "baselineChunks": [
-        "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706",
-        "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3",
-        "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476",
-        "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0",
-        "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc"
+        "ac8e18a173861c9e268703a78cf357ad28dd5e7c1dde835fdef83d87526f7c23",
+        "a5e58c58c72a0bde391ee7439eb2965985429b519090e20cb8c7bd061e14d08f",
+        "b3038dac436fc638a4aaa4b037d7b77c2bb8fab3c8c2c725b57964939868db50",
+        "3c7658ddcc36194c9e1e422869c452a1d9f74b9ded23a56ff8a2f3366c7d38da",
+        "5bf523173e1a173358649fa83cf085422604d3010d43c6c85d58bb474226fc17",
+        "8244de996281fa67adaa31931921a4e1c0a9f0aabb398026570483a651ecf27a",
+        "0f8c78d7bfc0329c3ebf8c11b619f2d9e52440f4ea66056a126ce0ada0ba7e01",
+        "ba067c1b3c6309dc39b7a775a2bd58aa6036190f44398948a70ee5859f7f93f7",
+        "23474b3e21d0b7271aed48102922ac49773385d6cfc870d1a79c14490820ed6b",
+        "5e97004d6745939071b971ee434f340d117546d8121846e75dc32d20ab3fbaf5",
+        "137109546ce2f427ad507fc494a33563999ad193a9779f00f4a29d060f5b70d1",
+        "7b7d06c7301b7e4491adf06068a460f54fc8780b6df92125321eee8cda8f6a3a",
+        "df0ad91f81e50e75cdfca0ccbe065abb270e5ec9c40c103f60848b78384ce332",
+        "ead780c1e856f3ac8eaa63edf8f101b85df8a27776ecd20a3206422563c254f5"
       ],
       "chunkDetails": [
         {
           "index": 1,
-          "hash": "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706",
-          "baselineHash": "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706",
+          "hash": "ac8e18a173861c9e268703a78cf357ad28dd5e7c1dde835fdef83d87526f7c23",
+          "baselineHash": "ac8e18a173861c9e268703a78cf357ad28dd5e7c1dde835fdef83d87526f7c23",
           "size": 8192,
-          "status": "reused",
-          "note": "Healed: Copied from healthy cluster replicas"
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
         },
         {
           "index": 2,
-          "hash": "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3",
-          "baselineHash": "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3",
+          "hash": "a5e58c58c72a0bde391ee7439eb2965985429b519090e20cb8c7bd061e14d08f",
+          "baselineHash": "a5e58c58c72a0bde391ee7439eb2965985429b519090e20cb8c7bd061e14d08f",
           "size": 8192,
-          "status": "reused",
-          "note": "Healed: Copied from healthy cluster replicas"
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
         },
         {
           "index": 3,
-          "hash": "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476",
-          "baselineHash": "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476",
+          "hash": "b3038dac436fc638a4aaa4b037d7b77c2bb8fab3c8c2c725b57964939868db50",
+          "baselineHash": "b3038dac436fc638a4aaa4b037d7b77c2bb8fab3c8c2c725b57964939868db50",
           "size": 8192,
-          "status": "reused",
-          "note": "Healed: Copied from healthy cluster replicas"
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
         },
         {
           "index": 4,
-          "hash": "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0",
-          "baselineHash": "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0",
+          "hash": "3c7658ddcc36194c9e1e422869c452a1d9f74b9ded23a56ff8a2f3366c7d38da",
+          "baselineHash": "3c7658ddcc36194c9e1e422869c452a1d9f74b9ded23a56ff8a2f3366c7d38da",
           "size": 8192,
-          "status": "reused",
-          "note": "Healed: Copied from healthy cluster replicas"
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
         },
         {
           "index": 5,
-          "hash": "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc",
-          "baselineHash": "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc",
-          "size": 3335,
-          "status": "reused",
-          "note": "Healed: Copied from healthy cluster replicas"
+          "hash": "5bf523173e1a173358649fa83cf085422604d3010d43c6c85d58bb474226fc17",
+          "baselineHash": "5bf523173e1a173358649fa83cf085422604d3010d43c6c85d58bb474226fc17",
+          "size": 8192,
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
+        },
+        {
+          "index": 6,
+          "hash": "8244de996281fa67adaa31931921a4e1c0a9f0aabb398026570483a651ecf27a",
+          "baselineHash": "8244de996281fa67adaa31931921a4e1c0a9f0aabb398026570483a651ecf27a",
+          "size": 8192,
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
+        },
+        {
+          "index": 7,
+          "hash": "0f8c78d7bfc0329c3ebf8c11b619f2d9e52440f4ea66056a126ce0ada0ba7e01",
+          "baselineHash": "0f8c78d7bfc0329c3ebf8c11b619f2d9e52440f4ea66056a126ce0ada0ba7e01",
+          "size": 8192,
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
+        },
+        {
+          "index": 8,
+          "hash": "ba067c1b3c6309dc39b7a775a2bd58aa6036190f44398948a70ee5859f7f93f7",
+          "baselineHash": "ba067c1b3c6309dc39b7a775a2bd58aa6036190f44398948a70ee5859f7f93f7",
+          "size": 8192,
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
+        },
+        {
+          "index": 9,
+          "hash": "23474b3e21d0b7271aed48102922ac49773385d6cfc870d1a79c14490820ed6b",
+          "baselineHash": "23474b3e21d0b7271aed48102922ac49773385d6cfc870d1a79c14490820ed6b",
+          "size": 8192,
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
+        },
+        {
+          "index": 10,
+          "hash": "5e97004d6745939071b971ee434f340d117546d8121846e75dc32d20ab3fbaf5",
+          "baselineHash": "5e97004d6745939071b971ee434f340d117546d8121846e75dc32d20ab3fbaf5",
+          "size": 8192,
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
+        },
+        {
+          "index": 11,
+          "hash": "137109546ce2f427ad507fc494a33563999ad193a9779f00f4a29d060f5b70d1",
+          "baselineHash": "137109546ce2f427ad507fc494a33563999ad193a9779f00f4a29d060f5b70d1",
+          "size": 8192,
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
+        },
+        {
+          "index": 12,
+          "hash": "7b7d06c7301b7e4491adf06068a460f54fc8780b6df92125321eee8cda8f6a3a",
+          "baselineHash": "7b7d06c7301b7e4491adf06068a460f54fc8780b6df92125321eee8cda8f6a3a",
+          "size": 8192,
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
+        },
+        {
+          "index": 13,
+          "hash": "df0ad91f81e50e75cdfca0ccbe065abb270e5ec9c40c103f60848b78384ce332",
+          "baselineHash": "df0ad91f81e50e75cdfca0ccbe065abb270e5ec9c40c103f60848b78384ce332",
+          "size": 8192,
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
+        },
+        {
+          "index": 14,
+          "hash": "ead780c1e856f3ac8eaa63edf8f101b85df8a27776ecd20a3206422563c254f5",
+          "baselineHash": "ead780c1e856f3ac8eaa63edf8f101b85df8a27776ecd20a3206422563c254f5",
+          "size": 5113,
+          "status": "new",
+          "note": "New chunk replicated to 3 nodes"
         }
       ],
-      "reusedCount": 5,
+      "reusedCount": 0,
       "affectedCount": 0,
-      "version": 3,
+      "version": 1,
       "status": "ok",
-      "updatedAt": 1791598294535
+      "updatedAt": 1791611813957
     }
   ],
   "chunks": {
-    "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706": {
-      "hash": "a186b6655ec85375f2609b047ee9d7ccb9efbcb06793da46f5059208f53f5706",
-      "size": 8192,
-      "replicas": [
-        {
-          "nodeId": "pc-1",
-          "state": "GOOD"
-        },
-        {
-          "nodeId": "pc-2",
-          "state": "GOOD"
-        },
-        {
-          "nodeId": "pc-3",
-          "state": "GOOD"
-        }
-      ]
-    },
-    "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3": {
-      "hash": "d4109d51e67294f59ebeb3d15a1353d68a12b0d3e9b51b8e46063e12ab0499c3",
-      "size": 8192,
-      "replicas": [
-        {
-          "nodeId": "pc-1",
-          "state": "GOOD"
-        },
-        {
-          "nodeId": "pc-2",
-          "state": "GOOD"
-        },
-        {
-          "nodeId": "pc-3",
-          "state": "GOOD"
-        }
-      ]
-    },
-    "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476": {
-      "hash": "9ee3eb6862e5c47a346ed4c140b619cc3db9819c133f4b23913afe5e59294476",
-      "size": 8192,
-      "replicas": [
-        {
-          "nodeId": "pc-1",
-          "state": "GOOD"
-        },
-        {
-          "nodeId": "pc-2",
-          "state": "GOOD"
-        },
-        {
-          "nodeId": "pc-3",
-          "state": "GOOD"
-        }
-      ]
-    },
-    "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0": {
-      "hash": "6ce93f32844804928ea472d7cf82464eda3d7526c7d5dd9ba03306917515cea0",
-      "size": 8192,
-      "replicas": [
-        {
-          "nodeId": "pc-1",
-          "state": "GOOD"
-        },
-        {
-          "nodeId": "pc-2",
-          "state": "GOOD"
-        },
-        {
-          "nodeId": "pc-3",
-          "state": "GOOD"
-        }
-      ]
-    },
-    "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc": {
-      "hash": "82080800cb9df0ba9e2e3ae4418c1f57badb0c5c6ec8a3912c08392c05f58bfc",
-      "size": 3314,
-      "replicas": [
-        {
-          "nodeId": "pc-1",
-          "state": "GOOD"
-        },
-        {
-          "nodeId": "pc-2",
-          "state": "GOOD"
-        },
-        {
-          "nodeId": "pc-3",
-          "state": "GOOD"
-        }
-      ]
-    },
-    "dbd51caef17c2f3bcb3e7706474dd3bcd63865fba4557668fdfc9b7bd5f9f7ca": {
-      "hash": "dbd51caef17c2f3bcb3e7706474dd3bcd63865fba4557668fdfc9b7bd5f9f7ca",
+    "ac8e18a173861c9e268703a78cf357ad28dd5e7c1dde835fdef83d87526f7c23": {
+      "hash": "ac8e18a173861c9e268703a78cf357ad28dd5e7c1dde835fdef83d87526f7c23",
       "size": 8192,
       "replicas": [
         {
@@ -176,8 +176,44 @@
         }
       ]
     },
-    "498075c1ce95b58b67bbdf93bb7781add53038e92e2728cd8d3393181ab5f02f": {
-      "hash": "498075c1ce95b58b67bbdf93bb7781add53038e92e2728cd8d3393181ab5f02f",
+    "a5e58c58c72a0bde391ee7439eb2965985429b519090e20cb8c7bd061e14d08f": {
+      "hash": "a5e58c58c72a0bde391ee7439eb2965985429b519090e20cb8c7bd061e14d08f",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "b3038dac436fc638a4aaa4b037d7b77c2bb8fab3c8c2c725b57964939868db50": {
+      "hash": "b3038dac436fc638a4aaa4b037d7b77c2bb8fab3c8c2c725b57964939868db50",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "3c7658ddcc36194c9e1e422869c452a1d9f74b9ded23a56ff8a2f3366c7d38da": {
+      "hash": "3c7658ddcc36194c9e1e422869c452a1d9f74b9ded23a56ff8a2f3366c7d38da",
       "size": 8192,
       "replicas": [
         {
@@ -194,8 +230,44 @@
         }
       ]
     },
-    "859b6c4eba1a070492ad57fb78cc930269276dbea1c342bc5f86ffcaea9b910b": {
-      "hash": "859b6c4eba1a070492ad57fb78cc930269276dbea1c342bc5f86ffcaea9b910b",
+    "5bf523173e1a173358649fa83cf085422604d3010d43c6c85d58bb474226fc17": {
+      "hash": "5bf523173e1a173358649fa83cf085422604d3010d43c6c85d58bb474226fc17",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "8244de996281fa67adaa31931921a4e1c0a9f0aabb398026570483a651ecf27a": {
+      "hash": "8244de996281fa67adaa31931921a4e1c0a9f0aabb398026570483a651ecf27a",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "0f8c78d7bfc0329c3ebf8c11b619f2d9e52440f4ea66056a126ce0ada0ba7e01": {
+      "hash": "0f8c78d7bfc0329c3ebf8c11b619f2d9e52440f4ea66056a126ce0ada0ba7e01",
       "size": 8192,
       "replicas": [
         {
@@ -212,8 +284,8 @@
         }
       ]
     },
-    "a2b0d880c879c11f3b1d2b587dac110da28e70a749000ea459c9af10507bc670": {
-      "hash": "a2b0d880c879c11f3b1d2b587dac110da28e70a749000ea459c9af10507bc670",
+    "ba067c1b3c6309dc39b7a775a2bd58aa6036190f44398948a70ee5859f7f93f7": {
+      "hash": "ba067c1b3c6309dc39b7a775a2bd58aa6036190f44398948a70ee5859f7f93f7",
       "size": 8192,
       "replicas": [
         {
@@ -230,9 +302,63 @@
         }
       ]
     },
-    "8ad0b60751a9a0cc40159e140ee8be4271dabfd726043118921d8ee38248c006": {
-      "hash": "8ad0b60751a9a0cc40159e140ee8be4271dabfd726043118921d8ee38248c006",
-      "size": 3335,
+    "23474b3e21d0b7271aed48102922ac49773385d6cfc870d1a79c14490820ed6b": {
+      "hash": "23474b3e21d0b7271aed48102922ac49773385d6cfc870d1a79c14490820ed6b",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "5e97004d6745939071b971ee434f340d117546d8121846e75dc32d20ab3fbaf5": {
+      "hash": "5e97004d6745939071b971ee434f340d117546d8121846e75dc32d20ab3fbaf5",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "137109546ce2f427ad507fc494a33563999ad193a9779f00f4a29d060f5b70d1": {
+      "hash": "137109546ce2f427ad507fc494a33563999ad193a9779f00f4a29d060f5b70d1",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "7b7d06c7301b7e4491adf06068a460f54fc8780b6df92125321eee8cda8f6a3a": {
+      "hash": "7b7d06c7301b7e4491adf06068a460f54fc8780b6df92125321eee8cda8f6a3a",
+      "size": 8192,
       "replicas": [
         {
           "nodeId": "pc-1",
@@ -244,15 +370,51 @@
         },
         {
           "nodeId": "pc-2",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "df0ad91f81e50e75cdfca0ccbe065abb270e5ec9c40c103f60848b78384ce332": {
+      "hash": "df0ad91f81e50e75cdfca0ccbe065abb270e5ec9c40c103f60848b78384ce332",
+      "size": 8192,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
+          "state": "GOOD"
+        }
+      ]
+    },
+    "ead780c1e856f3ac8eaa63edf8f101b85df8a27776ecd20a3206422563c254f5": {
+      "hash": "ead780c1e856f3ac8eaa63edf8f101b85df8a27776ecd20a3206422563c254f5",
+      "size": 5113,
+      "replicas": [
+        {
+          "nodeId": "pc-1",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-2",
+          "state": "GOOD"
+        },
+        {
+          "nodeId": "pc-3",
           "state": "GOOD"
         }
       ]
     }
   },
   "metrics": {
-    "restores": 9,
+    "restores": 12,
     "corruptionsCaught": 2,
-    "repairsCompleted": 39,
+    "repairsCompleted": 42,
     "integrityViolations": 0
   }
 }

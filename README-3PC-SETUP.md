@@ -55,9 +55,8 @@ New-NetFirewallRule -DisplayName "Mend Cluster" -Direction Inbound -LocalPort 50
 On **PC 2**, you only need `storage-node.js`.
 In your Command Prompt or PowerShell (e.g. `C:\Users\Admin`), run this **1-line command** (downloads the file from PC 1 and starts the node automatically):
 ```cmd
-curl -O http://192.168.137.66:5000/storage-node.js && node storage-node.js --id pc-2 --port 5001 --zone zone-b
+curl -O http://10.183.252.43:5000/storage-node.js && node storage-node.js --id pc-2 --port 5001 --zone zone-b
 ```
-*(Replace `192.168.137.66` with your PC 1 Wi-Fi IP if different).*
 *Output: `[pc-2] Storage Node active on 0.0.0.0:5001 (Zone: zone-b)`*
 
 ---
@@ -65,10 +64,8 @@ curl -O http://192.168.137.66:5000/storage-node.js && node storage-node.js --id 
 ### Step 4: Start Node on PC 3
 On **PC 3**, run this **1-line command** in Command Prompt or PowerShell:
 ```cmd
-curl -O http://192.168.137.66:5000/storage-node.js && node storage-node.js --id pc-3 --port 5001 --zone zone-c
+curl -O http://10.183.252.43:5000/storage-node.js && node storage-node.js --id pc-3 --port 5001 --zone zone-c
 ```
-*Output: `[pc-3] Storage Node active on 0.0.0.0:5001 (Zone: zone-c)`*
-  ```
 *Output: `[pc-3] Storage Node active on 0.0.0.0:5001 (Zone: zone-c)`*
 
 ---
